@@ -5,3 +5,6 @@ class CreditAccount(Account):
         super().__init__(acc_num, account_name, balance)
         self.__credit_amount = credit_amount
 
+    def __str__(self):
+        return super().__str__() + f', Crédito: {self.__credit_amount}'
+

@@ -1,7 +1,18 @@
 from Act_2_3.menuBuilder import MenuBuilder
+from Act_2_3.functions import AccountFunctions
 
-main_menu = ['1. Crear cuenta']
-sub_menu = ['1. Cuenta normal', '2. Cuenta a Crédito']
+funcs = AccountFunctions()
+
+main_menu = [
+    ('Crear Cuenta', None),
+    ('Ver Cuentas', funcs.get_accounts),
+    ('Salir', MenuBuilder.exit)
+]
+sub_menu = [
+    ('Cuenta normal', funcs.create_account),
+    ('Cuenta de crédito', funcs.create_credit_account),
+    ('Regresar', MenuBuilder.back)
+]
 
 menu = MenuBuilder(main_menu, 'Principal',(1, sub_menu))
 if __name__ == '__main__':
