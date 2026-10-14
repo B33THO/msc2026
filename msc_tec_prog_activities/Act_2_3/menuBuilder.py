@@ -1,16 +1,19 @@
 from Act_2_3.colors import Color
 
-
 class MenuBuilder:
 
     def __init__(self, items, label, *submenus):
         self.__label = label
         self.__items = list(items)
-        self.__submenus = {} #
+        self.__submenus = {}
+
         for sub in submenus:
             option, sub_items, *nested = sub
+
+            #Validate that option is in range
             if not 1 <= option <= len(self.__items):
                 raise ValueError(f'La opción {option} no existe en "{label}"')
+
             sub_label = self.__items[option - 1][0]
             self.__submenus[option] = MenuBuilder(sub_items, sub_label, *nested)
 
