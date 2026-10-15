@@ -70,7 +70,7 @@ class EmployeesActions:
 
         print(f'{Color.YELLOW}{"-" * 70}EMPLEADOS HONORARIOS{"-" * 70}')
         for employee in fee_emps:
-                print(employee)
+            print(employee)
         print(f'{"-" * 150}{Color.RESET}')
 
     def show_base_employees_info(self):
@@ -81,7 +81,7 @@ class EmployeesActions:
 
         print(f'{Color.YELLOW}{"-" * 70}EMPLEADOS BASE{"-" * 70}')
         for employee in base_employees:
-                print(employee)
+            print(employee)
         print(f'{"-" * 150}{Color.RESET}')
 
     def show_all_employees_info(self):
@@ -96,13 +96,51 @@ class EmployeesActions:
         print(f'{"-"*150}{Color.RESET}')
 
     def show_salaries_info(self):
-        pass
+        if len(self.__employees) == 0:
+            print(f'{Color.YELLOW}No hay empleados.{Color.RESET}')
+        else:
+            print(f'{Color.YELLOW}{"-" * 40}SALARIOS DE EMPLEADOS{"-" * 40}')
+            for employee in self.__employees:
+                print(f'Empleado: {employee.get_name()} -- Salario: {employee.get_salary():,.2f}')
+            print(f'{"-" * 100}{Color.RESET}')
 
     def show_salary_info(self):
-        pass
+        if len(self.__employees) == 0:
+            print(f'{Color.YELLOW}No hay empleados.{Color.RESET}')
+            return
+        nss = self.__ask_nss()
+        if nss is None:
+            return
+        employee_found = self.__find_by_nss(nss)
+        if employee_found is None:
+            print(f'{Color.RED}No existe el empleado{Color.RESET}')
+            return
+        else:
+            print(f'{Color.YELLOW}Empleado: {employee_found.get_name()} -- Salario: {employee_found.get_salary():,.2f}{Color.RESET}')
+
 
     def delete_employee(self):
-        pass
+        if len(self.__employees) == 0:
+            print(f'{Color.YELLOW}No hay empleados.{Color.RESET}')
+            return
+        nss_selected = self.__ask_nss()
+        if nss_selected is None:
+            return
+
+        employee_to_delete = self.__find_by_nss(nss_selected)
+
+        if employee_to_delete is not None:
+            opt = input(f'{Color.YELLOW}Seguro que desea eliminar a {employee_to_delete.get_nss()} - '
+                        f'{employee_to_delete.get_name()}? (s/n){Color.RESET}')
+            if opt.strip().lower() == 's':
+                self.__employees.remove(employee_to_delete)
+                print(f'{Color.GREEN}Empleado eliminado correctamente{Color.RESET}')
+            else:
+                print(f'{Color.YELLOW}Eliminación cancelada{Color.RESET}')
+        else:
+            print(f'{Color.RED}No existe el empleado{Color.RESET}')
+            return
+
 
     #-----------------------------------------------
     # Helpers
@@ -142,7 +180,7 @@ class EmployeesActions:
     def __ask_nss():
         """Pide un NSS válido; devuelve None si el usuario deja la entrada vacía para cancelar."""
         while True:
-            nss = input('Ingrese el NSS (Enter para cancelar): ').strip()
+            nss = input('Ingrese el NSS de 5 dígitos (Enter para cancelar): ').strip()
             if not nss:
                 print(f'{Color.YELLOW}Operación cancelada{Color.RESET}')
                 return None

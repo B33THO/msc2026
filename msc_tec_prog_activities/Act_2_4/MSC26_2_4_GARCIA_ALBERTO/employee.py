@@ -14,5 +14,8 @@ class Employee:
     def get_nss(self) -> int:
         return self.__nss
 
+    def get_name(self) -> str:
+        return self.__name
+
     def __str__(self):
-        return f'NSS: {self.__nss} -- Nombre: {self.__name} -- Salario: {self.__salary} -- Puesto: {self.__position}'
+        return f'NSS: {self.__nss} -- Nombre: {self.__name} -- Salario: {self.__salary:,.2f} -- Puesto: {self.__position}'
