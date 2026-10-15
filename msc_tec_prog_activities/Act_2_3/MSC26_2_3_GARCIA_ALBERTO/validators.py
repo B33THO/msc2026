@@ -1,12 +1,13 @@
 import re
-from Act_2_4.colors import Color
+
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.colors import Color
 
 
 class Validator:
     MAX_AMOUNT = 1_000_000_000
     MAX_NAME_LENGTH = 100
 
-    __NSS_NUMBER_PATTERN = re.compile(r'[1-9][0-9]{4}')
+    __ACCOUNT_NUMBER_PATTERN = re.compile(r'[1-9][0-9]{3}')
     __AMOUNT_PATTERN = re.compile(r'[0-9]+(\.[0-9]{1,2})?')
 
     @staticmethod
@@ -46,16 +47,16 @@ class Validator:
         return True
 
     @staticmethod
-    def is_nss_number(value):
-        if isinstance(value, str) and Validator.__NSS_NUMBER_PATTERN.fullmatch(value.strip()):
+    def is_account_number(value):
+        if isinstance(value, str) and Validator.__ACCOUNT_NUMBER_PATTERN.fullmatch(value.strip()):
             return True
-        Validator.__error(f"'{Validator.__preview(value)}' no es un NSS válido. "
-                          f"Debe tener 5 dígitos y no empezar con 0, por ejemplo 12345")
+        Validator.__error(f"'{Validator.__preview(value)}' no es un número de cuenta válido. "
+                          f"Debe tener 4 dígitos y no empezar con 0, por ejemplo 1234")
         return False
 
     @staticmethod
     def is_amount(value):
-        """Monto de dinero: positivo, con máximo 2 decimales y sin pasar de MAX_AMOUNT."""
+
         if not isinstance(value, str) or not Validator.__AMOUNT_PATTERN.fullmatch(value.strip()):
             Validator.__error(f"'{Validator.__preview(value)}' no es un monto válido. "
                               f"Use números con máximo 2 decimales, por ejemplo 150.50")

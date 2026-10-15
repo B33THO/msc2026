@@ -1,5 +1,5 @@
-from Act_2_3.menuBuilder import MenuBuilder
-from Act_2_3.functions import AccountFunctions
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.menuBuilder import MenuBuilder
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.functions import AccountFunctions
 
 funcs = AccountFunctions()
 

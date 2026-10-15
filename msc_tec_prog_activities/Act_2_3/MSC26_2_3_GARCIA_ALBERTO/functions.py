@@ -1,10 +1,10 @@
 from decimal import Decimal
 
-from Act_2_3.account import Account, InsufficientFundsError
-from Act_2_3.colors import Color
-from Act_2_3.credit_account import CreditAccount
-from Act_2_3.menuBuilder import MenuBuilder
-from Act_2_3.validators import Validator
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.account import Account, InsufficientFundsError
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.colors import Color
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.credit_account import CreditAccount
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.menuBuilder import MenuBuilder
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.validators import Validator
 
 
 class AccountFunctions:

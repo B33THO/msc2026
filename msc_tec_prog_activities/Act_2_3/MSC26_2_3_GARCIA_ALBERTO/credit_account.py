@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from Act_2_3.account import Account, InsufficientFundsError
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.account import Account, InsufficientFundsError
 
 
 class CreditAccount(Account):

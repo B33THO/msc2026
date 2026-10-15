@@ -1,4 +1,4 @@
-from Act_2_3.colors import Color
+from MSC26_2_4_GARCIA_ALBERTO.colors import Color
 
 class MenuBuilder:
 
@@ -41,9 +41,10 @@ class MenuBuilder:
         """
         while True:
             print(f'{Color.CYAN}{self.__label}{Color.RESET}')
-            for i, (text, _) in enumerate(self.__items, start=1):
+            for i, (text, func) in enumerate(self.__items, start=1):
                 arrow = f' {Color.YELLOW}>{Color.RESET}' if i in self.__submenus else ''
-                print(f'  {i}. {text}{arrow}')
+                back_arrow = f'{Color.YELLOW}<{Color.RESET} ' if func is MenuBuilder.back else ''
+                print(f'  {i}. {back_arrow}{text}{arrow}')
 
             choice = input('Selecciona una opción: ').strip()
             # isascii() evita que int() falle con dígitos como '²', que isdigit() acepta

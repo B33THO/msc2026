@@ -1,4 +1,4 @@
-from Act_2_4.colors import Color
+from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.colors import Color
 
 class MenuBuilder:
 
