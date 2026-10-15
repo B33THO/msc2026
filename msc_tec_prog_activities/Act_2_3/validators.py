@@ -56,7 +56,7 @@ class Validator:
 
     @staticmethod
     def is_amount(value):
-        """Monto de dinero: positivo, con máximo 2 decimales y sin pasar de MAX_AMOUNT."""
+
         if not isinstance(value, str) or not Validator.__AMOUNT_PATTERN.fullmatch(value.strip()):
             Validator.__error(f"'{Validator.__preview(value)}' no es un monto válido. "
                               f"Use números con máximo 2 decimales, por ejemplo 150.50")
