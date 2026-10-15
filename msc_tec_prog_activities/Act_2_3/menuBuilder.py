@@ -46,7 +46,8 @@ class MenuBuilder:
                 print(f'  {i}. {text}{arrow}')
 
             choice = input('Selecciona una opción: ').strip()
-            if not choice.isdigit() or not 1 <= int(choice) <= len(self.__items):
+            # isascii() evita que int() falle con dígitos como '²', que isdigit() acepta
+            if not (choice.isascii() and choice.isdigit()) or not 1 <= int(choice) <= len(self.__items):
                 print(f'{Color.RED}Opción inválida{Color.RESET}')
                 continue
 
