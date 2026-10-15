@@ -8,3 +8,6 @@ class CreditAccount(Account):
     def __str__(self):
         return super().__str__() + f', Crédito: {self.__credit_amount}'
 
+    def get_credit_amount(self):
+        return self.__credit_amount
+
