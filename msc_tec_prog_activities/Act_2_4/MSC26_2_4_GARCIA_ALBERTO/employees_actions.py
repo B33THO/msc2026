@@ -101,7 +101,7 @@ class EmployeesActions:
         else:
             print(f'{Color.YELLOW}{"-" * 40}SALARIOS DE EMPLEADOS{"-" * 40}')
             for employee in self.__employees:
-                print(f'Empleado: {employee.get_name()} -- Salario: {employee.get_salary():,.2f}')
+                print(f'NSS: {employee.get_nss()} -- Empleado: {employee.get_name()} -- Salario: {employee.get_salary():,.2f}')
             print(f'{"-" * 100}{Color.RESET}')
 
     def show_salary_info(self):
@@ -115,8 +115,7 @@ class EmployeesActions:
         if employee_found is None:
             print(f'{Color.RED}No existe el empleado{Color.RESET}')
             return
-        else:
-            print(f'{Color.YELLOW}Empleado: {employee_found.get_name()} -- Salario: {employee_found.get_salary():,.2f}{Color.RESET}')
+        print(f'{Color.YELLOW}NSS: {employee_found.get_nss()} -- Empleado: {employee_found.get_name()} -- Salario: {employee_found.get_salary():,.2f}{Color.RESET}')
 
 
     def delete_employee(self):
@@ -139,7 +138,6 @@ class EmployeesActions:
                 print(f'{Color.YELLOW}Eliminación cancelada{Color.RESET}')
         else:
             print(f'{Color.RED}No existe el empleado{Color.RESET}')
-            return
 
 
     #-----------------------------------------------
