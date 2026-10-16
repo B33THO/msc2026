@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.account import Account, InsufficientFundsError
+from MSC26_2_3_GARCIA_ALBERTO.account import Account, InsufficientFundsError
 
 
 class CreditAccount(Account):
@@ -28,7 +28,7 @@ class CreditAccount(Account):
         if amount > balance + self.get_credit_amount():
             raise InsufficientFundsError('Saldo y crédito insuficiente')
         self.__credit_used += amount - balance
-        self.set_balance(Decimal('0'))
+        self._set_balance(Decimal('0'))
         return self.get_balance()
 
     def balance_after_deposit(self, amount):

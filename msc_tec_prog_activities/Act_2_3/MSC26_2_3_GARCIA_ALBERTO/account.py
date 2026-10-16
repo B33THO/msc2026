@@ -39,7 +39,7 @@ class Account:
     def get_acc_num(self):
         return self.__acc_num
 
-    def set_balance(self, balance):
+    def _set_balance(self, balance):
         self.__balance = balance
 
     def __str__(self):

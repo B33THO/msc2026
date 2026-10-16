@@ -1,4 +1,4 @@
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.colors import Color
+from MSC26_2_3_GARCIA_ALBERTO.colors import Color
 
 class MenuBuilder:
 
@@ -13,7 +13,7 @@ class MenuBuilder:
         for sub in submenus:
             option, sub_items, *nested = sub
 
-            #Validate that option is in range
+            # Validate that option is in range
             if not 1 <= option <= len(self.__items):
                 raise ValueError(f'La opción {option} no existe en "{label}"')
 

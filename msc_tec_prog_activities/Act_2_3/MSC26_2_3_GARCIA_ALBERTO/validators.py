@@ -1,6 +1,7 @@
 import re
+from decimal import Decimal
 
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.colors import Color
+from MSC26_2_3_GARCIA_ALBERTO.colors import Color
 
 
 class Validator:
@@ -61,7 +62,7 @@ class Validator:
             Validator.__error(f"'{Validator.__preview(value)}' no es un monto válido. "
                               f"Use números con máximo 2 decimales, por ejemplo 150.50")
             return False
-        amount = float(value)
+        amount = Decimal(value)
         if amount <= 0:
             Validator.__error('El monto debe ser mayor que 0.')
             return False

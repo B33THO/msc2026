@@ -1,11 +1,11 @@
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.menuBuilder import MenuBuilder
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.functions import AccountFunctions
+from MSC26_2_3_GARCIA_ALBERTO.menuBuilder import MenuBuilder
+from MSC26_2_3_GARCIA_ALBERTO.functions import AccountFunctions
 
 funcs = AccountFunctions()
 
 main_menu = [
     ('Crear cuenta', None),  # 1
-    ('Imprimir cuentas', funcs.get_accounts),  # 2
+    ('Imprimir cuentas', funcs.print_accounts),  # 2
     ('Realizar transacción', funcs.transaction),  # 3
     ('Buscar una cuenta', funcs.find_account),  # 4
     ('Eliminar cuenta', funcs.delete_account),  # 5

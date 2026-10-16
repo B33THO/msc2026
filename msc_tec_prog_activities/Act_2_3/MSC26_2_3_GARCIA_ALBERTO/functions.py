@@ -1,10 +1,10 @@
 from decimal import Decimal
 
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.account import Account, InsufficientFundsError
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.colors import Color
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.credit_account import CreditAccount
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.menuBuilder import MenuBuilder
-from Act_2_3.MSC26_2_3_GARCIA_ALBERTO.validators import Validator
+from MSC26_2_3_GARCIA_ALBERTO.account import Account, InsufficientFundsError
+from MSC26_2_3_GARCIA_ALBERTO.colors import Color
+from MSC26_2_3_GARCIA_ALBERTO.credit_account import CreditAccount
+from MSC26_2_3_GARCIA_ALBERTO.menuBuilder import MenuBuilder
+from MSC26_2_3_GARCIA_ALBERTO.validators import Validator
 
 
 class AccountFunctions:
@@ -20,7 +20,7 @@ class AccountFunctions:
     def create_credit_account(self):
         return self.__create(CreditAccount, 'Cuenta de crédito creada correctamente')
 
-    def get_accounts(self):
+    def print_accounts(self):
         if not self.__accounts:
             print(f'{Color.RED}No hay cuentas{Color.RESET}')
             return
@@ -180,5 +180,5 @@ class AccountFunctions:
 
     def __display_accounts(self):
         print(f'{Color.YELLOW}{"-" * 40} Cuentas {"-" * 40}{Color.RESET}')
-        self.get_accounts()
+        self.print_accounts()
         print(f'{Color.YELLOW}{"-" * 89}{Color.RESET}')
