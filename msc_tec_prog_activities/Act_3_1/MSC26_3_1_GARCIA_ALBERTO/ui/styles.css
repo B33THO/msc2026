@@ -1,0 +1,15 @@
+QPushButton {
+    background-color: #2b5c8f;
+    color: #ffffff;
+    border-radius: 5px;
+    padding: 8px 12px;
+}
+
+QPushButton:hover {
+    background-color: #3a70a5;
+}
+
+/* Estilo específico para un componente por su objectName */
+QPushButton#btnGuardar {
+    background-color: #28a745;
+}
