@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>896</width>
+    <width>1084</width>
     <height>578</height>
    </rect>
   </property>
@@ -20,8 +20,8 @@
    <widget class="QPushButton" name="btn_add_employee">
     <property name="geometry">
      <rect>
-      <x>690</x>
-      <y>110</y>
+      <x>880</x>
+      <y>70</y>
       <width>171</width>
       <height>41</height>
      </rect>
@@ -32,6 +32,20 @@
     <property name="text">
      <string>Agregar Empleado</string>
     </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../icons/person_add.svg</normaloff>../icons/person_add.svg</iconset>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="tw_employees_table">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>120</y>
+      <width>1021</width>
+      <height>351</height>
+     </rect>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -39,7 +53,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>896</width>
+     <width>1084</width>
      <height>21</height>
     </rect>
    </property>
