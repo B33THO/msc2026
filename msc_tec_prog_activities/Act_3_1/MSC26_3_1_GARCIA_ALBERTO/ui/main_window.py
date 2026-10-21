@@ -12,11 +12,11 @@ class Main(QMainWindow):
         super(Main, self).__init__(parent)
         main_window_path = os.path.join(os.path.dirname(__file__), 'main_window.ui')
         loadUi(main_window_path, self)
+        self.employees_list = []
         self.load_styles()
         self.configure_table()
-        self.create_employee_dialog = CreateEmployeeDialog()
+        self.create_employee_dialog = CreateEmployeeDialog(self.employees_list)
         self.events()
-        self.employees = []
 
 
     def load_styles(self):
@@ -31,17 +31,14 @@ class Main(QMainWindow):
         self.create_employee_dialog.employee_created.connect(self.update_employee_table)
 
     def open_create_employee_window(self):
-        if self.create_employee_dialog is None:
-            self.create_employee_dialog = CreateEmployeeDialog()
-
         self.create_employee_dialog.show()
 
     def update_employee_table(self, employee):
         try:
 
-            self.employees.append(employee)
-            self.tw_employees_table.setRowCount(len(self.employees))
-            for row, employee in enumerate(self.employees):
+            self.employees_list.append(employee)
+            self.tw_employees_table.setRowCount(len(self.employees_list))
+            for row, employee in enumerate(self.employees_list):
                 nss = str(employee.get_nss())
                 first_name = employee.get_first_name()
                 last_name = employee.get_last_name()

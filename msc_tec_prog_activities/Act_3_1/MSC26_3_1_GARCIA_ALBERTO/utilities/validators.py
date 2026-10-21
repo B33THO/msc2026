@@ -8,6 +8,7 @@ class Validator:
     __NSS_NUMBER_PATTERN = re.compile(r'[1-9][0-9]{4}')
     __AMOUNT_PATTERN = re.compile(r'[0-9]+(\.[0-9]{1,2})?')
     __INTEGER_PATTERN = re.compile(r'[0-9]+')
+    __DATE_DDMMYY_PATTERN = re.compile(r'(\d{4}-\d{2}-\d{2})')
 
     @staticmethod
     def __error(message):
@@ -84,3 +85,4 @@ class Validator:
             Validator.__error(f'El número no puede ser mayor que {max_value:,}.')
             return False
         return True
+
