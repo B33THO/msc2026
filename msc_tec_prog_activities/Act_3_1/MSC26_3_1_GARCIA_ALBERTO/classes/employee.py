@@ -1,8 +1,5 @@
-import datetime
-
-
 class Employee:
-    def __init__(self, nss: int, first_name: str, last_name:str, name:str, position: str, born_date: str, hometown:str):
+    def __init__(self, nss: str, first_name: str, last_name:str, name:str, position: str, born_date: str, hometown:str):
         self.__nss = nss
         self.__first_name = first_name
         self.__last_name = last_name
@@ -10,12 +7,12 @@ class Employee:
         self.__position = position
         self.__born_date = born_date
         self.__hometown = hometown
-        self.__salary = 1
+        self.__salary = 0.0
 
     def get_salary(self) -> float:
         return self.__salary
 
-    def get_nss(self) -> int:
+    def get_nss(self) -> str:
         return self.__nss
 
     def get_first_name(self) -> str:
