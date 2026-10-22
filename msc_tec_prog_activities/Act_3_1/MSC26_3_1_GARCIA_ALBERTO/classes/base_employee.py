@@ -1,9 +1,12 @@
 import datetime
 
 from classes.employee import Employee
+from utilities.dates import Dates
 
 
 class BaseEmployee(Employee):
+    WEEKLY_HOURS = 40
+    SENIORITY_RATE = 0.01
 
     HOURLY_SALARIES = {
         'Programador': 250.0,
@@ -33,16 +36,19 @@ class BaseEmployee(Employee):
 
     def get_years_of_service(self) -> int:
         # Años completos desde la fecha de ingreso
-        today = datetime.date.today()
-        years = today.year - self.__hire_date.year
-        if (today.month, today.day) < (self.__hire_date.month, self.__hire_date.day):
-            years -= 1
-        return max(0, years)
+        return max(0, Dates.full_years(self.__hire_date, datetime.date.today()))
+
+    def get_weekly_base(self) -> float:
+        # Sueldo de las 40 horas sin el bono de antigüedad
+        return self.__hourly_salary * BaseEmployee.WEEKLY_HOURS
+
+    def get_seniority_rate(self) -> float:
+        # 1% por cada año de servicio
+        return BaseEmployee.SENIORITY_RATE * self.get_years_of_service()
 
     def get_salary(self) -> float:
         # sueldo_hora * 40 * (1 + 1% por cada año de servicio)
-        self.set_salary(self.__hourly_salary * 40 * (1 + 0.01 * self.get_years_of_service()))
-        return super().get_salary()
+        return self.get_weekly_base() * (1 + self.get_seniority_rate())
 
     def __str__(self):
-        return super().__str__() + f' -- Sueldo hora: {self.__hourly_salary} -- Años de servicio: {self.get_years_of_service()}'
+        return super().__str__() + f' -- Salario: {self.get_salary():,.2f} -- Sueldo hora: {self.__hourly_salary} -- Años de servicio: {self.get_years_of_service()}'

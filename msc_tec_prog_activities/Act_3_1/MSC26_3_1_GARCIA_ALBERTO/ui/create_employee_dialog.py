@@ -8,14 +8,15 @@ from PyQt6.uic import loadUi
 from classes.base_employee import BaseEmployee
 from classes.employee import Employee
 from classes.fee_employee import FeeEmployee
-from utilities.employee_actions import EmployeeActions
+from utilities.dates import Dates
+from utilities.formatters import Formatter
 from utilities.validators import Validator
 
 
 class CreateEmployeeDialog(QWidget):
-    MIN_AGE = 18
-
-    employee_created = pyqtSignal(Employee)
+    employee_created_signal = pyqtSignal(Employee)
+    # Señal aparte para que la ventana principal pueda conservar el filtro de búsqueda al editar
+    employee_updated_signal = pyqtSignal(Employee)
     def __init__(self, employees):
         super().__init__()
         self.setWindowTitle("Crear Empleado")
@@ -28,7 +29,6 @@ class CreateEmployeeDialog(QWidget):
         #Empleado seleccionado para editar
         self.employee_selected = None
         self.__is_edit = False
-        self.emp_actions = EmployeeActions()
         self.__employees = employees
         self.rb_base_employee.setChecked(True)
         self.events()
@@ -63,14 +63,17 @@ class CreateEmployeeDialog(QWidget):
         self.cb_positions.setEnabled(not is_edit)
         self.de_hire_date.setEnabled(not is_edit)
 
+        # Al crear el sueldo es el fijo del puesto (solo se muestra); al editar se puede actualizar
+        self.lbl_salary_title.setText('Sueldo por hora' if is_edit else 'Sueldo Inicial')
+        self.lb_base_salary.setVisible(not is_edit)
+        self.le_hourly_salary.setVisible(is_edit)
+
         if not is_edit:
             # clear_fields() no dispara las señales si el combo y el radio ya estaban en su valor inicial
             self.update_initial_salary()
             return
 
         employee = self.employee_selected
-        # El orden importa: setChecked y setCurrentText disparan update_initial_salary,
-        # que sobrescribe el sueldo con el fijo del puesto; por eso el sueldo real va al final
         if isinstance(employee, BaseEmployee):
             self.rb_base_employee.setChecked(True)
             self.de_hire_date.setDate(employee.get_hire_date())
@@ -87,7 +90,7 @@ class CreateEmployeeDialog(QWidget):
         self.de_born_date.setDate(QDate.fromString(employee.get_born_date(), 'yyyy-MM-dd'))
         self.le_hometown.setText(employee.get_hometown())
 
-        self.lb_base_salary.setText(f'$ {employee.get_hourly_salary():,.2f} / hora')
+        self.le_hourly_salary.setText(f'{employee.get_hourly_salary():.2f}')
 
     def save_employee(self):
         try:
@@ -115,13 +118,14 @@ class CreateEmployeeDialog(QWidget):
                                            hometown, type_value)
 
             self.__employees.append(new_employee)
-            self.employee_created.emit(new_employee)
+            self.employee_created_signal.emit(new_employee)
             QMessageBox.information(self, 'Correcto', 'Empleado creado correctamente')
             self.close()
         except Exception as e:
             QMessageBox.critical(self, 'Error inesperado', str(e))
 
     def edit_employee(self):
+        # Los errores inesperados los atrapa save_employee, que es quien llama a este método
         form_values = self.get_form_values()
         if form_values is None:
             return
@@ -133,17 +137,24 @@ class CreateEmployeeDialog(QWidget):
         _, in_first_name, in_last_name, in_name = form_values
         born_date_text, hometown, type_value = detail_values
 
+        in_hourly_salary = self.le_hourly_salary.text().strip()
+        if not Validator.is_amount(in_hourly_salary):
+            QMessageBox.critical(self, 'Error', f'El sueldo por hora debe ser un monto mayor que 0 y hasta '
+                                                f'{Formatter.money(Validator.MAX_AMOUNT)}, con máximo 2 '
+                                                f'decimales, por ejemplo 150.50')
+            return
+
         employee = self.employee_selected
         employee.set_first_name(in_first_name)
         employee.set_last_name(in_last_name)
         employee.set_name(in_name)
         employee.set_born_date(born_date_text)
         employee.set_hometown(hometown)
+        employee.set_hourly_salary(float(in_hourly_salary))
         if isinstance(employee, FeeEmployee):
             employee.set_hours(type_value)
 
-        # Se reutiliza la señal porque solo sirve para refrescar la tabla
-        self.employee_created.emit(employee)
+        self.employee_updated_signal.emit(employee)
         QMessageBox.information(self, 'Correcto', 'Empleado actualizado correctamente')
         self.close()
 
@@ -151,8 +162,8 @@ class CreateEmployeeDialog(QWidget):
         """Valida fecha de nacimiento, procedencia y el dato según el tipo (fecha de ingreso u horas)."""
         #------------------------------------Fecha de nacimiento-----------------------------------------------------
         born_date = self.de_born_date.date().toPyDate()
-        if self.__full_years(born_date, datetime.date.today()) < CreateEmployeeDialog.MIN_AGE:
-            QMessageBox.critical(self, 'Error', f'El empleado debe tener al menos {CreateEmployeeDialog.MIN_AGE} años')
+        if Dates.full_years(born_date, datetime.date.today()) < Employee.MIN_AGE:
+            QMessageBox.critical(self, 'Error', f'El empleado debe tener al menos {Employee.MIN_AGE} años')
             return
 
         hometown = self.le_hometown.text().strip()
@@ -164,13 +175,23 @@ class CreateEmployeeDialog(QWidget):
         # Se guarda la fecha como texto ISO (aaaa-mm-dd) para no depender del formato regional
         born_date_text = born_date.isoformat()
         if self.rb_base_employee.isChecked():
+            if self.__is_edit:
+                # La fecha de ingreso no se edita: se valida contra la guardada y no contra el campo deshabilitado
+                hire_date = self.employee_selected.get_hire_date()
+                if Dates.full_years(born_date, hire_date) < Employee.MIN_AGE:
+                    QMessageBox.critical(self, 'Error', f'A su fecha de ingreso ({hire_date:%d/%m/%Y}), que no se '
+                                                        f'puede modificar, el empleado debía tener al menos '
+                                                        f'{Employee.MIN_AGE} años. Revise la fecha de nacimiento')
+                    return
+                return born_date_text, hometown, hire_date
+
             hire_date = self.de_hire_date.date().toPyDate()
             if hire_date > datetime.date.today():
                 QMessageBox.critical(self, 'Error', 'La fecha de ingreso no puede ser futura')
                 return
-            if self.__full_years(born_date, hire_date) < CreateEmployeeDialog.MIN_AGE:
+            if Dates.full_years(born_date, hire_date) < Employee.MIN_AGE:
                 QMessageBox.critical(self, 'Error', f'A la fecha de ingreso el empleado debía tener al menos '
-                                                    f'{CreateEmployeeDialog.MIN_AGE} años')
+                                                    f'{Employee.MIN_AGE} años')
                 return
             return born_date_text, hometown, hire_date
 
@@ -215,9 +236,11 @@ class CreateEmployeeDialog(QWidget):
         self.le_name.clear()
         self.le_hometown.clear()
         self.le_hours.clear()
+        self.le_hourly_salary.clear()
         self.cb_positions.setCurrentIndex(0)
         self.de_born_date.setDate(QDate(2000, 1, 1))
-        self.de_hire_date.setDate(QDate.currentDate())
+        # Se actualiza el máximo de las fechas por si la aplicación sigue abierta de un día a otro
+        self.configure_dates()
         self.rb_base_employee.setChecked(True)
 
     def load_positions(self):
@@ -244,12 +267,4 @@ class CreateEmployeeDialog(QWidget):
             hourly_salary = BaseEmployee.HOURLY_SALARIES.get(self.cb_positions.currentText(), 0.0)
         else:
             hourly_salary = FeeEmployee.HOURLY_SALARY
-        self.lb_base_salary.setText(f'$ {hourly_salary:,.2f} / hora')
-
-    @staticmethod
-    def __full_years(start: datetime.date, end: datetime.date) -> int:
-        """Años completos entre dos fechas (edad o antigüedad)."""
-        years = end.year - start.year
-        if (end.month, end.day) < (start.month, start.day):
-            years -= 1
-        return years
+        self.lb_base_salary.setText(f'{Formatter.money(hourly_salary)} / hora')
