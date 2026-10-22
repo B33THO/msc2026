@@ -36,5 +36,23 @@ class Employee:
     def set_salary(self, salary: float):
         self.__salary = salary
 
+    def set_nss(self, nss: str):
+        self.__nss = nss
+
+    def set_first_name(self, first_name: str):
+        self.__first_name = first_name
+
+    def set_last_name(self, last_name: str):
+        self.__last_name = last_name
+
+    def set_name(self, name: str):
+        self.__name = name
+
+    def set_born_date(self, born_date: str):
+        self.__born_date = born_date
+
+    def set_hometown(self, hometown: str):
+        self.__hometown = hometown
+
     def __str__(self):
         return f'NSS: {self.__nss} -- Nombre: {self.__name} -- Salario: {self.__salary:,.2f} -- Puesto: {self.__position}'

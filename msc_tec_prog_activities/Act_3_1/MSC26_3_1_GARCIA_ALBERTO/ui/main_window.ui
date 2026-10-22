@@ -26,6 +26,9 @@
       <height>41</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Crear un empleado nuevo</string>
+    </property>
     <property name="styleSheet">
      <string notr="true"/>
     </property>
@@ -39,7 +42,7 @@
    </widget>
    <widget class="QTableWidget" name="tw_employees_table">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
@@ -55,9 +58,12 @@
      <rect>
       <x>30</x>
       <y>80</y>
-      <width>581</width>
+      <width>431</width>
       <height>31</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Buscar empleado</string>
     </property>
     <property name="placeholderText">
      <string>Buscar empleado (nombre o NSS)</string>
@@ -66,8 +72,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>620</x>
-      <y>90</y>
+      <x>470</x>
+      <y>80</y>
       <width>31</width>
       <height>21</height>
      </rect>
@@ -77,6 +83,32 @@
     </property>
     <property name="pixmap">
      <pixmap>../icons/search.svg</pixmap>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_edit_employee">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>700</x>
+      <y>70</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Editar empleado</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string>Editar Empleado</string>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../icons/person_edit.svg</normaloff>../icons/person_edit.svg</iconset>
     </property>
    </widget>
   </widget>
@@ -89,6 +121,12 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuSalir">
+    <property name="title">
+     <string>Salir</string>
+    </property>
+   </widget>
+   <addaction name="menuSalir"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>

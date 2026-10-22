@@ -6,9 +6,9 @@ from PyQt6.QtCore import Qt, QDir
 from PyQt6.QtWidgets import QMainWindow, QApplication, QHeaderView, QTableWidgetItem, QMessageBox, QAbstractItemView
 from PyQt6.uic import loadUi
 
-from Act_3_1.MSC26_3_1_GARCIA_ALBERTO.classes.base_employee import BaseEmployee
-from Act_3_1.MSC26_3_1_GARCIA_ALBERTO.classes.fee_employee import FeeEmployee
-from Act_3_1.MSC26_3_1_GARCIA_ALBERTO.ui.create_employee_dialog import CreateEmployeeDialog
+from classes.base_employee import BaseEmployee
+from classes.fee_employee import FeeEmployee
+from ui.create_employee_dialog import CreateEmployeeDialog
 
 class Main(QMainWindow):
     def __init__(self, parent=None):
@@ -17,10 +17,13 @@ class Main(QMainWindow):
         loadUi(main_window_path, self)
         self.setWindowTitle('Empleados')
         self.employees_list = []
+        self.create_employee_dialog = CreateEmployeeDialog(self.employees_list)
+        self.employee_selected = None
+        # Empleados en el orden en que se muestran en la tabla (cambia al filtrar con la búsqueda)
+        self.shown_employees = self.employees_list
         self.load_styles()
         self.configure_table()
         self.load_default_employees()
-        self.create_employee_dialog = CreateEmployeeDialog(self.employees_list)
         self.events()
 
     def load_default_employees(self):
@@ -57,39 +60,61 @@ class Main(QMainWindow):
     # EVENTS
     #-----------------------------------------------------------------------------------------------------------------
     def events(self):
-        self.btn_add_employee.clicked.connect(self.open_create_employee_window)
+        self.btn_add_employee.clicked.connect(lambda: self.open_employee_window(False))
+        self.btn_edit_employee.clicked.connect(lambda: self.open_employee_window(True, self.employee_selected))
         self.create_employee_dialog.employee_created.connect(self.update_employee_table)
         self.le_search.textEdited.connect(self.search_employee)
+        self.tw_employees_table.itemSelectionChanged.connect(self.select_employee)
+    #-----------------------------------------------------------------------------------------------------------------
+    #
+    #-----------------------------------------------------------------------------------------------------------------
 
-    def open_create_employee_window(self):
-        self.create_employee_dialog.clear_fields()
+    def open_employee_window(self, edit_mode:bool=False, employee = None):
+        try:
+            self.create_employee_dialog.clear_fields()
+            self.create_employee_dialog.set_employee(employee)
+            self.create_employee_dialog.is_edit_mode(edit_mode)
+            self.create_employee_dialog.show()
+        except Exception as e:
+            print(e)
+
+    def open_edit_employee_window(self):
         self.create_employee_dialog.show()
 
-    def update_employee_table(self, new_employee):
+    def select_employee(self):
         try:
-            self.tw_employees_table.setRowCount(len(self.employees_list))
-            for row, employee in enumerate(self.employees_list):
-                nss = str(employee.get_nss())
-                first_name = employee.get_first_name()
-                last_name = employee.get_last_name()
-                name = employee.get_name()
-                born_date = employee.get_born_date()
-                position = employee.get_position()
-                hometown = employee.get_hometown()
-                employee_type = employee.get_type()
-                hourly_salary = employee.get_hourly_salary()
-                salary = employee.get_salary()
+            indexes_selected = sorted(list(set(index.row() for index in self.tw_employees_table.selectedIndexes())))
 
-                self.tw_employees_table.setItem(row, 0, QTableWidgetItem(str(nss)))
-                self.tw_employees_table.setItem(row, 1, QTableWidgetItem(str(first_name)))
-                self.tw_employees_table.setItem(row, 2, QTableWidgetItem(str(last_name)))
-                self.tw_employees_table.setItem(row, 3, QTableWidgetItem(str(name)))
-                self.tw_employees_table.setItem(row, 4, QTableWidgetItem(str(position)))
-                self.tw_employees_table.setItem(row, 5, QTableWidgetItem(str(born_date)))
-                self.tw_employees_table.setItem(row, 6, QTableWidgetItem(str(hometown)))
-                self.tw_employees_table.setItem(row, 7, QTableWidgetItem(employee_type))
-                self.tw_employees_table.setItem(row, 8, self.money_item(hourly_salary))
-                self.tw_employees_table.setItem(row, 9, self.money_item(salary))
+            if len(indexes_selected) == 1:
+                self.employee_selected = self.shown_employees[indexes_selected[0]]
+                print(self.employee_selected)
+                self.btn_edit_employee.setEnabled(True)
+            else:
+                self.btn_edit_employee.setEnabled(False)
+
+        except Exception as e:
+            print(e)
+
+    def update_employee_table(self, new_employee):
+        self.fill_table(self.employees_list)
+
+    def fill_table(self, employees):
+        # Lo usan tanto la lista completa como la búsqueda, para que la tabla se vea igual en ambos casos
+        try:
+            self.shown_employees = employees
+            self.tw_employees_table.setRowCount(0)
+            self.tw_employees_table.setRowCount(len(employees))
+            for row, employee in enumerate(employees):
+                self.tw_employees_table.setItem(row, self.NSS, QTableWidgetItem(str(employee.get_nss())))
+                self.tw_employees_table.setItem(row, self.FIRST_NAME, QTableWidgetItem(employee.get_first_name()))
+                self.tw_employees_table.setItem(row, self.LAST_NAME, QTableWidgetItem(employee.get_last_name()))
+                self.tw_employees_table.setItem(row, self.NAME, QTableWidgetItem(employee.get_name()))
+                self.tw_employees_table.setItem(row, self.POSITION, QTableWidgetItem(employee.get_position()))
+                self.tw_employees_table.setItem(row, self.BORN_DATE, QTableWidgetItem(employee.get_born_date()))
+                self.tw_employees_table.setItem(row, self.HOMETOWN, QTableWidgetItem(employee.get_hometown()))
+                self.tw_employees_table.setItem(row, self.TYPE, QTableWidgetItem(employee.get_type()))
+                self.tw_employees_table.setItem(row, self.HOUR_SALARY, self.money_item(employee.get_hourly_salary()))
+                self.tw_employees_table.setItem(row, self.SALARY, self.money_item(employee.get_salary()))
         except Exception as e:
             QMessageBox.critical(self, 'Error al actualizar la tabla', str(e))
 
@@ -115,38 +140,13 @@ class Main(QMainWindow):
         self.tw_employees_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
     def search_employee(self):
-        try:
-            val = self.le_search.text().strip().lower()
+        val = self.le_search.text().strip().lower()
 
-            result = [
-                e for e in self.employees_list
-                    if val in f'{e.get_first_name()} {e.get_last_name()} {e.get_nss()}'.lower()
-            ]
-            self.tw_employees_table.setRowCount(0)
-            self.tw_employees_table.setRowCount(len(result))
-            for line, employee in enumerate(result):
-                print(employee)
-                self.tw_employees_table.setItem(line, self.NSS, QTableWidgetItem(employee.get_nss()))
-                self.tw_employees_table.setItem(line, self.FIRST_NAME, QTableWidgetItem(employee.get_first_name()))
-                self.tw_employees_table.setItem(line, self.LAST_NAME, QTableWidgetItem(employee.get_last_name()))
-                self.tw_employees_table.setItem(line, self.NAME, QTableWidgetItem(employee.get_name()))
-                self.tw_employees_table.setItem(line, self.POSITION, QTableWidgetItem(employee.get_position()))
-                self.tw_employees_table.setItem(line, self.POSITION, QTableWidgetItem(employee.get_position()))
-                self.tw_employees_table.setItem(line, self.BORN_DATE, QTableWidgetItem(employee.get_born_date()))
-                self.tw_employees_table.setItem(line, self.HOMETOWN, QTableWidgetItem(employee.get_hometown()))
-                current_type = employee.get_type()
-                print(current_type)
-                self.tw_employees_table.setItem(line, self.TYPE, QTableWidgetItem(current_type))
-
-                if current_type == 'Honorarios':
-                    self.tw_employees_table.setItem(line, self.HOUR_SALARY, QTableWidgetItem(f'{employee.get_hourly_salary():.2f}'))
-
-                if current_type == 'Base':
-                    self.tw_employees_table.setItem(line, self.HOUR_SALARY, QTableWidgetItem(f'{employee.get_hourly_salary():.2f}'))
-
-                self.tw_employees_table.setItem(line, self.SALARY, QTableWidgetItem(f'{employee.get_salary():.2f}'))
-        except Exception as e:
-            print(e)
+        result = [
+            e for e in self.employees_list
+                if val in f'{e.get_first_name()} {e.get_last_name()} {e.get_name()} {e.get_nss()}'.lower()
+        ]
+        self.fill_table(result)
 
 
     NSS = 0
