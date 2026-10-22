@@ -111,6 +111,29 @@
       <normaloff>../icons/person_edit.svg</normaloff>../icons/person_edit.svg</iconset>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_add_employee_2">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>70</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Crear un empleado nuevo</string>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string>Eliminar Empleado</string>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../icons/person_add.svg</normaloff>../icons/person_add.svg</iconset>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
