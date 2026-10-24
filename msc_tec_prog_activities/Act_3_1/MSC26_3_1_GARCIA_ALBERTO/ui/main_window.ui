@@ -17,29 +17,6 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="btn_add_employee">
-    <property name="geometry">
-     <rect>
-      <x>880</x>
-      <y>70</y>
-      <width>171</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Crear un empleado nuevo</string>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-    <property name="text">
-     <string>Agregar Empleado</string>
-    </property>
-    <property name="icon">
-     <iconset>
-      <normaloff>../icons/person_add.svg</normaloff>../icons/person_add.svg</iconset>
-    </property>
-   </widget>
    <widget class="QTableWidget" name="tw_employees_table">
     <property name="enabled">
      <bool>true</bool>
@@ -47,9 +24,9 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>120</y>
+      <y>60</y>
       <width>1021</width>
-      <height>351</height>
+      <height>411</height>
      </rect>
     </property>
    </widget>
@@ -57,8 +34,8 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>80</y>
-      <width>431</width>
+      <y>16</y>
+      <width>341</width>
       <height>31</height>
      </rect>
     </property>
@@ -72,8 +49,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>470</x>
-      <y>80</y>
+      <x>380</x>
+      <y>21</y>
       <width>31</width>
       <height>21</height>
      </rect>
@@ -83,55 +60,6 @@
     </property>
     <property name="pixmap">
      <pixmap>../icons/search.svg</pixmap>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_edit_employee">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>700</x>
-      <y>70</y>
-      <width>171</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Editar empleado</string>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-    <property name="text">
-     <string>Editar Empleado</string>
-    </property>
-    <property name="icon">
-     <iconset>
-      <normaloff>../icons/person_edit.svg</normaloff>../icons/person_edit.svg</iconset>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_add_employee_2">
-    <property name="geometry">
-     <rect>
-      <x>520</x>
-      <y>70</y>
-      <width>171</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Crear un empleado nuevo</string>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-    <property name="text">
-     <string>Eliminar Empleado</string>
-    </property>
-    <property name="icon">
-     <iconset>
-      <normaloff>../icons/person_add.svg</normaloff>../icons/person_add.svg</iconset>
     </property>
    </widget>
   </widget>
@@ -146,12 +74,147 @@
    </property>
    <widget class="QMenu" name="menuSalir">
     <property name="title">
-     <string>Salir</string>
+     <string>Menu</string>
     </property>
+    <addaction name="actionAgregar_Empleado"/>
+    <addaction name="actionSalir"/>
+   </widget>
+   <widget class="QMenu" name="menuAyuda">
+    <property name="title">
+     <string>Ayuda</string>
+    </property>
+    <addaction name="actionComo_usar"/>
+    <addaction name="actionFormulas"/>
+    <addaction name="separator"/>
+    <addaction name="actionAcerca_de"/>
    </widget>
    <addaction name="menuSalir"/>
+   <addaction name="menuAyuda"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="tb_actions">
+   <property name="windowTitle">
+    <string>Acciones</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>20</width>
+     <height>20</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextBesideIcon</enum>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionAgregar_Empleado"/>
+   <addaction name="separator"/>
+   <addaction name="actionEditar_Empleado"/>
+   <addaction name="actionEliminar_Empleado"/>
+   <addaction name="actionVer_Detalle"/>
+  </widget>
+  <action name="actionSalir">
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/logout.svg</normaloff>../icons/logout.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Salir</string>
+   </property>
+  </action>
+  <action name="actionAgregar_Empleado">
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/person_add.svg</normaloff>../icons/person_add.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Agregar Empleado</string>
+   </property>
+   <property name="toolTip">
+    <string>Crear un empleado nuevo</string>
+   </property>
+  </action>
+  <action name="actionComo_usar">
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/help.svg</normaloff>../icons/help.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Cómo usar</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
+  <action name="actionFormulas">
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/info.svg</normaloff>../icons/info.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Fórmulas de salario</string>
+   </property>
+  </action>
+  <action name="actionAcerca_de">
+   <property name="text">
+    <string>Acerca de</string>
+   </property>
+  </action>
+  <action name="actionEditar_Empleado">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/person_edit.svg</normaloff>../icons/person_edit.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Editar Empleado</string>
+   </property>
+   <property name="toolTip">
+    <string>Editar el empleado seleccionado</string>
+   </property>
+  </action>
+  <action name="actionEliminar_Empleado">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/delete.svg</normaloff>../icons/delete.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Eliminar Empleado</string>
+   </property>
+   <property name="toolTip">
+    <string>Eliminar el empleado seleccionado</string>
+   </property>
+  </action>
+  <action name="actionVer_Detalle">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/info.svg</normaloff>../icons/info.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Ver Detalle</string>
+   </property>
+   <property name="toolTip">
+    <string>Ver el detalle del empleado y de su salario (también con doble clic en la fila)</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

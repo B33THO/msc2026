@@ -55,20 +55,17 @@ QPushButton:disabled {
 }
 
 /* Acciones principales: outline índigo */
-QPushButton#btn_add_employee,
 QPushButton#btn_save_employee {
     color: #4f46e5;
     border-color: #4f46e5;
 }
 
-QPushButton#btn_add_employee:hover,
 QPushButton#btn_save_employee:hover {
     background-color: #eef2ff;
     color: #4338ca;
     border-color: #4338ca;
 }
 
-QPushButton#btn_add_employee:pressed,
 QPushButton#btn_save_employee:pressed {
     background-color: #e0e7ff;
 }
@@ -86,6 +83,29 @@ QPushButton#btn_cancel:hover {
 
 QPushButton#btn_cancel:pressed {
     background-color: #fee2e2;
+}
+
+/* Borrar formulario: outline naranja (mismo tono que su ícono) */
+QPushButton#btn_clear {
+    color: #F19E39;
+    border-color: #F19E39;
+}
+
+QPushButton#btn_clear:hover {
+    background-color: #fef6ec;
+    color: #d9831f;
+    border-color: #d9831f;
+}
+
+QPushButton#btn_clear:pressed {
+    background-color: #fde9d0;
+}
+
+/* Deshabilitado: gris (los selectores por ID tienen mayor prioridad) */
+QPushButton#btn_clear:disabled {
+    color: #9ca3af;
+    border-color: #e5e7eb;
+    background-color: transparent;
 }
 
 /* ---------- Campos de captura ---------- */
@@ -401,4 +421,83 @@ QFrame#f_fee_emp {
 QFrame#f_base_emp QLabel, QFrame#f_fee_emp QLabel {
     font-weight: 600;
     color: #4b5563;
+}
+
+/* ---------- Ventana de detalle del empleado ---------- */
+QLabel#lbl_emp_fullname {
+    font-size: 15pt;
+    font-weight: 600;
+    color: #111827;
+}
+
+QLabel#lbl_emp_subtitle {
+    color: #6b7280;
+    font-size: 10pt;
+}
+
+QGroupBox#gb_employee QLabel, QGroupBox#gb_salary QLabel {
+    font-weight: 400;
+    color: #6b7280;
+}
+
+/* Valores: propiedad dinámica value=true (en el .ui y en add_salary_row) */
+QGroupBox#gb_employee QLabel[value="true"], QGroupBox#gb_salary QLabel[value="true"] {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+QGroupBox#gb_salary QLabel#lbl_total_title {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+QGroupBox#gb_salary QLabel#lb_total {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #4f46e5;
+}
+
+QGroupBox#gb_salary QLabel#lb_formula {
+    font-size: 8pt;
+    font-style: italic;
+    color: #9ca3af;
+}
+
+/* ---------- Toolbar de la ventana principal ---------- */
+QToolBar#tb_actions {
+    background-color: #ffffff;
+    border: none;
+    border-bottom: 1px solid #dfe3ec;
+    padding: 6px;
+    spacing: 4px;
+}
+
+/* Botones planos: el color lo da cada ícono */
+QToolBar#tb_actions QToolButton {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #374151;
+    font-weight: 600;
+}
+
+QToolBar#tb_actions QToolButton:hover {
+    background-color: #f3f4f6;
+    border-color: #dfe3ec;
+}
+
+QToolBar#tb_actions QToolButton:pressed {
+    background-color: #e5e7eb;
+}
+
+QToolBar#tb_actions QToolButton:disabled {
+    color: #9ca3af;
+}
+
+QToolBar#tb_actions::separator {
+    background-color: #dfe3ec;
+    width: 1px;
+    margin: 6px 8px;
 }

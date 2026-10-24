@@ -1,4 +1,7 @@
 class Employee:
+    # Edad mínima para contratar (al día de hoy y a la fecha de ingreso)
+    MIN_AGE = 18
+
     def __init__(self, nss: str, first_name: str, last_name:str, name:str, position: str, born_date: str, hometown:str):
         self.__nss = nss
         self.__first_name = first_name
@@ -7,10 +10,10 @@ class Employee:
         self.__position = position
         self.__born_date = born_date
         self.__hometown = hometown
-        self.__salary = 0.0
 
     def get_salary(self) -> float:
-        return self.__salary
+        # Cada tipo de empleado calcula su salario; no se guarda para que no quede desactualizado
+        raise NotImplementedError
 
     def get_nss(self) -> str:
         return self.__nss
@@ -33,9 +36,6 @@ class Employee:
     def get_hometown(self) -> str:
         return self.__hometown
 
-    def set_salary(self, salary: float):
-        self.__salary = salary
-
     def set_nss(self, nss: str):
         self.__nss = nss
 
@@ -55,4 +55,4 @@ class Employee:
         self.__hometown = hometown
 
     def __str__(self):
-        return f'NSS: {self.__nss} -- Nombre: {self.__name} -- Salario: {self.__salary:,.2f} -- Puesto: {self.__position}'
+        return f'NSS: {self.__nss} -- Nombre: {self.__name} -- Puesto: {self.__position}'
