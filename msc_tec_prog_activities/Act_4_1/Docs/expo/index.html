@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <title>Programa Cuentas</title>
+</head>
+<body>
+    <header class="expo_title">
+        <div class="wrap">
+            <p class="eyebrow">Actividad 4.1 · Exposición</p>
+            <h1>Programa Cuentas</h1>
+            <p class="subtitle">Una aplicación bancaria de escritorio construida por capas.</p>
+            <ul class="stack">
+                <li>Python</li>
+                <li>Qt Designer</li>
+                <li>MySQL</li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="expo_content wrap">
+        <section class="section">
+            <header class="section_head">
+                <span class="section_num">01</span>
+                <h2>Arquitectura utilizada</h2>
+            </header>
+            <p class="lead">
+                Se decidió utilizar la arquitectura
+                <strong>MVR (Modelo · Vista · Repositorio)</strong>.
+            </p>
+            <ul class="benefits">
+                <li>
+                    <h4>Separación de responsabilidades</h4>
+                    <p>Si cambias de MySQL a otra base de datos, solo tocas el Repositorio. La Vista no cambia.</p>
+                </li>
+                <li>
+                    <h4>Menos código repetido</h4>
+                    <p>El SQL está en un solo lugar, no disperso en cada botón.</p>
+                </li>
+                <li>
+                    <h4>Fácil de probar y leer</h4>
+                    <p>Cada archivo hace una sola cosa.</p>
+                </li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <header class="section_head">
+                <span class="section_num">02</span>
+                <h2>Configuración de carpetas</h2>
+            </header>
+            <ul class="folder_list">
+                <li class="folder_item">
+                    <img src="img/folder_domain.svg" alt="Carpeta domain" width="56" height="56"/>
+                    <div>
+                        <p class="folder_name">domain <span class="tag">Modelo</span></p>
+                        <p>Define las clases Cliente, Cuenta (ahorro) y CuentaCredito con sus atributos. Son objetos simples que viajan entre las capas; no saben nada de la base de datos ni de la interfaz.</p>
+                    </div>
+                </li>
+                <li class="folder_item">
+                    <img src="img/folder_repositories.svg" alt="Carpeta repositories" width="56" height="56"/>
+                    <div>
+                        <p class="folder_name">repositories <span class="tag">Repositorio</span></p>
+                        <p>Es el único lugar del programa que contiene SQL: altas, bajas, cambios y consultas. Usa la conexión de db y convierte cada fila en un objeto de domain, así el resto del código nunca escribe una consulta.</p>
+                    </div>
+                </li>
+                <li class="folder_item">
+                    <img src="img/folder_ui.svg" alt="Carpeta ui" width="56" height="56"/>
+                    <div>
+                        <p class="folder_name">ui <span class="tag">Vista</span></p>
+                        <p>Ventanas, formularios y tabla diseñados en Qt Designer (archivos .ui). Solo muestra datos y recibe acciones del usuario; para cualquier operación llama a services, nunca a db directamente.</p>
+                    </div>
+                </li>
+                <li class="folder_item">
+                    <img src="img/folder_services.svg" alt="Carpeta services" width="56" height="56"/>
+                    <div>
+                        <p class="folder_name">services <span class="tag">Negocio</span></p>
+                        <p>Contiene las reglas del banco: depósitos, retiros y validaciones de saldo y límite de crédito. Decide si una operación es válida antes de pedir al repositorio que la guarde.</p>
+                    </div>
+                </li>
+                <li class="folder_item">
+                    <img src="img/folder_db.svg" alt="Carpeta db" width="56" height="56"/>
+                    <div>
+                        <p class="folder_name">db <span class="tag">Infraestructura</span></p>
+                        <p>Connection.py abre la conexión a MySQL leyendo las credenciales del archivo .env. Incluye script.sql, que crea la base de datos BankAccounts y sus tablas.</p>
+                    </div>
+                </li>
+                <li class="folder_item">
+                    <img src="img/folder_utilities.svg" alt="Carpeta utilities" width="56" height="56"/>
+                    <div>
+                        <p class="folder_name">utilities <span class="tag">Apoyo</span></p>
+                        <p>Funciones reutilizables que no pertenecen a una sola capa: validación de los campos de los formularios y lectura/escritura de archivos CSV y XLSX.</p>
+                    </div>
+                </li>
+                <li class="folder_item">
+                    <img src="img/folder_data.svg" alt="Carpeta data" width="56" height="56"/>
+                    <div>
+                        <p class="folder_name">data <span class="tag">Archivos</span></p>
+                        <p>Archivos .csv y .xlsx que el programa importa para cargar cuentas o exporta al guardar reportes.</p>
+                    </div>
+                </li>
+                <li class="folder_item">
+                    <img src="img/folder_icons.svg" alt="Carpeta icons" width="56" height="56"/>
+                    <div>
+                        <p class="folder_name">icons <span class="tag">Recursos</span></p>
+                        <p>Imágenes que usan los botones y ventanas de la interfaz, separadas del código para cambiarlas sin tocarlo.</p>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <header class="section_head">
+                <span class="section_num">03</span>
+                <h2>¿Cómo viajan los datos?</h2>
+            </header>
+            <p class="lead">Ejemplo: el usuario deposita <strong>$500</strong> en la cuenta <strong>1001</strong>.</p>
+            <div class="flow">
+                <div class="flow_track">
+                    <div class="flow_station" data-station="0">
+                        <img src="img/folder_ui.svg" alt="ui" width="56" height="56"/>
+                        <span>ui</span>
+                    </div>
+                    <div class="flow_station" data-station="1">
+                        <img src="img/folder_services.svg" alt="services" width="56" height="56"/>
+                        <span>services</span>
+                    </div>
+                    <div class="flow_station" data-station="2">
+                        <img src="img/folder_repositories.svg" alt="repositories" width="56" height="56"/>
+                        <span>repositories</span>
+                    </div>
+                    <div class="flow_station" data-station="3">
+                        <img src="img/folder_db.svg" alt="db" width="56" height="56"/>
+                        <span>MySQL</span>
+                    </div>
+                    <div class="flow_packet" id="flowPacket">depositar(1001, 500)</div>
+                </div>
+                <p class="flow_caption" id="flowCaption">Presiona «Reproducir» para ver el recorrido.</p>
+                <div class="flow_controls">
+                    <button type="button" id="flowPlay">▶ Reproducir</button>
+                    <span class="flow_steps" id="flowSteps"></span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="expo_footer wrap">
+        <p>Programa Cuentas · Python + Qt Designer + MySQL</p>
+    </footer>
+
+    <script>
+        (function () {
+            // Cada paso: estación destino, texto del paquete, si va de regreso y explicación.
+            const steps = [
+                { at: 0, label: "depositar(1001, 500)", back: false,
+                  text: "ui: el usuario llena el formulario y presiona «Depositar». La Vista solo recoge los datos." },
+                { at: 1, label: "depositar(1001, 500)", back: false,
+                  text: "services: valida la regla de negocio — el monto debe ser mayor a 0." },
+                { at: 2, label: "actualizar_saldo(1001, +500)", back: false,
+                  text: "repositories: arma la consulta SQL; es el único lugar con SQL." },
+                { at: 3, label: "UPDATE Cuenta SET saldo = saldo + 500", back: false,
+                  text: "db: MySQL ejecuta la consulta usando la conexión de Connection.py." },
+                { at: 2, label: "fila → Cuenta(1001, $1,500)", back: true,
+                  text: "repositories: convierte la fila de la tabla en un objeto Cuenta de domain." },
+                { at: 1, label: "Cuenta(1001, $1,500)", back: true,
+                  text: "services: confirma que la operación fue válida y devuelve el objeto." },
+                { at: 0, label: "Saldo: $1,500 ✓", back: true,
+                  text: "ui: muestra el nuevo saldo en la tabla. La Vista nunca tocó la base de datos." }
+            ];
+
+            const packet = document.getElementById("flowPacket");
+            const caption = document.getElementById("flowCaption");
+            const playBtn = document.getElementById("flowPlay");
+            const stepsEl = document.getElementById("flowSteps");
+            const stations = document.querySelectorAll(".flow_station");
+            let timer = null;
+
+            stepsEl.innerHTML = steps.map(() => "<i></i>").join("");
+            const dots = stepsEl.querySelectorAll("i");
+
+            function placePacket(index) {
+                const st = stations[index];
+                const center = st.offsetLeft + st.offsetWidth / 2;
+                packet.style.left = center + "px";
+            }
+
+            function show(i) {
+                const s = steps[i];
+                placePacket(s.at);
+                packet.textContent = s.label;
+                packet.classList.toggle("is_back", s.back);
+                caption.textContent = s.text;
+                stations.forEach((st, k) => st.classList.toggle("is_active", k === s.at));
+                dots.forEach((d, k) => d.classList.toggle("is_done", k <= i));
+            }
+
+            function play() {
+                clearTimeout(timer);
+                playBtn.disabled = true;
+                packet.classList.add("is_visible");
+                let i = 0;
+                (function next() {
+                    show(i);
+                    i++;
+                    if (i < steps.length) {
+                        timer = setTimeout(next, 2400);
+                    } else {
+                        playBtn.disabled = false;
+                        playBtn.textContent = "↺ Repetir";
+                    }
+                })();
+            }
+
+            playBtn.addEventListener("click", play);
+            window.addEventListener("resize", () => {
+                const active = document.querySelector(".flow_station.is_active");
+                if (active) placePacket(Number(active.dataset.station));
+            });
+            placePacket(0);
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Pestaña y cuerpo de la carpeta -->
+  <path d="M8 28a8 8 0 0 1 8-8h30l10 10h56a8 8 0 0 1 8 8v8H8z" fill="#1F5F78"/>
+  <rect x="8" y="38" width="112" height="74" rx="8" fill="#2A7B9B"/>
+  <!-- Símbolo de base de datos (cilindro) -->
+  <g fill="#FFE500" stroke="#1F5F78" stroke-width="2">
+    <path d="M44 56v36c0 5.5 9 10 20 10s20-4.5 20-10V56"/>
+    <ellipse cx="64" cy="56" rx="20" ry="8"/>
+  </g>
+  <g fill="none" stroke="#1F5F78" stroke-width="2">
+    <path d="M44 68c0 5.5 9 10 20 10s20-4.5 20-10"/>
+    <path d="M44 80c0 5.5 9 10 20 10s20-4.5 20-10"/>
+  </g>
+</svg>

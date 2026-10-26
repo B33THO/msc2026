@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Pestaña y cuerpo de la carpeta -->
+  <path d="M8 28a8 8 0 0 1 8-8h30l10 10h56a8 8 0 0 1 8 8v8H8z" fill="#1F5F78"/>
+  <rect x="8" y="38" width="112" height="74" rx="8" fill="#2A7B9B"/>
+  <!-- Símbolo de datos (hoja de cálculo) -->
+  <g fill="#FFE500" stroke="#1F5F78" stroke-width="2">
+    <rect x="40" y="50" width="48" height="46" rx="3"/>
+    <path d="M40 61.5h48M40 73h48M40 84.5h48M56 50v46M72 50v46" fill="none"/>
+    <rect x="40" y="50" width="48" height="11.5" rx="3" fill="#1F5F78" fill-opacity=".35" stroke="none"/>
+  </g>
+</svg>
