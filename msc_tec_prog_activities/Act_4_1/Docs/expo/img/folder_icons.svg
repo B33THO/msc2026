@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Pestaña y cuerpo de la carpeta -->
+  <path d="M8 28a8 8 0 0 1 8-8h30l10 10h56a8 8 0 0 1 8 8v8H8z" fill="#1F5F78"/>
+  <rect x="8" y="38" width="112" height="74" rx="8" fill="#2A7B9B"/>
+  <!-- Símbolo de iconos (estrella) -->
+  <g fill="#FFE500" stroke="#1F5F78" stroke-width="2" stroke-linejoin="round">
+    <path d="M64 50l6.5 13.5 14.8 2-10.8 10.3 2.7 14.7L64 83.4l-13.2 7.1 2.7-14.7-10.8-10.3 14.8-2z"/>
+  </g>
+</svg>

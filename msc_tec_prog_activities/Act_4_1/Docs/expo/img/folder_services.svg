@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Pestaña y cuerpo de la carpeta -->
+  <path d="M8 28a8 8 0 0 1 8-8h30l10 10h56a8 8 0 0 1 8 8v8H8z" fill="#1F5F78"/>
+  <rect x="8" y="38" width="112" height="74" rx="8" fill="#2A7B9B"/>
+  <!-- Símbolo de servicios (engrane) -->
+  <g fill="#FFE500" stroke="#1F5F78" stroke-width="2" stroke-linejoin="round">
+    <path d="M60 50h8l1.5 6.5 5 2.1 5.7-3.6 5.7 5.7-3.6 5.7 2.1 5L91 73v8l-6.5 1.5-2.1 5 3.6 5.7-5.7 5.7-5.7-3.6-5 2.1L68 104h-8l-1.5-6.5-5-2.1-5.7 3.6-5.7-5.7 3.6-5.7-2.1-5L37 81v-8l6.5-1.5 2.1-5-3.6-5.7 5.7-5.7 5.7 3.6 5-2.1z" transform="translate(0 -5)"/>
+    <circle cx="64" cy="72" r="8" fill="#2A7B9B"/>
+  </g>
+</svg>
