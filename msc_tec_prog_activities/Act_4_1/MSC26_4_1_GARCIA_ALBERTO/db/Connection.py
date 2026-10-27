@@ -18,7 +18,9 @@ class Connection:
         conn = mysql.connector.connect(**self.config)
         cur = conn.cursor(dictionary=dictionary)
         try:
-            yield cur #yield pausa la función y entrega un valor a quien la llamó, en este caso un cursor
+            # yield pausa la función y entrega un valor a quien la llamó,
+            # en este caso un cursor
+            yield cur
             conn.commit()
         except Exception:
             conn.rollback()
