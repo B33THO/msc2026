@@ -1,30 +1,30 @@
 class Account:
-    def __init__(self, idClient ,number_account, balance, createdAt):
-        self.__idClient = idClient
-        self.__number_account = number_account
+    def __init__(self, id_client, account_number, balance, created_at):
+        self.__id_client = id_client
+        self.__account_number = account_number
         self.__balance = balance
-        self.__createdAt = createdAt
+        self.__created_at = created_at
 
-    def getIdClient(self):
-        return self.__idClient
+    def get_id_client(self):
+        return self.__id_client
 
-    def getNumberAccount(self):
-        return self.__number_account
+    def get_account_number(self):
+        return self.__account_number
 
-    def getBalance(self):
+    def get_balance(self):
         return self.__balance
 
-    def getCreatedAt(self):
-        return self.__createdAt
+    def get_created_at(self):
+        return self.__created_at
 
-    def setCreatedAt(self, createdAt):
-        self.__createdAt = createdAt
+    def set_created_at(self, created_at):
+        self.__created_at = created_at
 
-    def setBalance(self, balance):
+    def set_balance(self, balance):
         self.__balance = balance
 
-    def setIdClient(self, idClient):
-        self.__idClient = idClient
+    def set_id_client(self, id_client):
+        self.__id_client = id_client
 
-    def setNumberAccount(self, number_account):
-        self.__number_account = number_account
+    def set_account_number(self, account_number):
+        self.__account_number = account_number

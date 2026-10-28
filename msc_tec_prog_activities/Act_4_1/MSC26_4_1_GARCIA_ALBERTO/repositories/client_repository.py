@@ -1,4 +1,4 @@
-from db.Connection import Connection
+from db.connection import Connection
 from domain.client import Client
 
 
@@ -10,28 +10,28 @@ class ClientRepository:
     def _to_client(row):
         return Client(
             row['id'],
-            row['paternalSurname'],
-            row['maternalSurname'],
+            row['paternal_surname'],
+            row['maternal_surname'],
             row['name']
         )
 
     #---------------------------------------------------------------------------------
-    # CREAR USUARIO
+    # CREAR CLIENTE
     #---------------------------------------------------------------------------------
 
     def create(self, client):
         #Consulta SQL
         sql = """
-            INSERT INTO client (paternalSurname, maternalSurname, name) 
+            INSERT INTO client (paternal_surname, maternal_surname, name) 
             VALUES (%s, %s, %s)
         """
         with self.__connection.cursor() as cur: #Se usa el cursor de la conexión
             cur.execute(sql, (
-                client.getPaternalSurname(),
-                client.getMaternalSurname(),
-                client.getName()
+                client.get_paternal_surname(),
+                client.get_maternal_surname(),
+                client.get_name()
             )) #Ejecuta la consulta
-            client.setId(cur.lastrowid) #Asignamos el id creado al modelo Client
+            client.set_id(cur.lastrowid) #Asignamos el id creado al modelo Client
 
         return client
 
@@ -39,15 +39,15 @@ class ClientRepository:
     # CONSULTA POR ID
     #---------------------------------------------------------------------------------
 
-    def get_by_id(self, id):
+    def get_by_id(self, client_id):
         #Consulta SQL
         sql = """
-            SELECT id, paternalSurname, maternalSurname, name
+            SELECT id, paternal_surname, maternal_surname, name
             FROM client WHERE id = %s
         """
         #Obtiene el cursor de la conexión y regresa la fila como diccionario
         with self.__connection.cursor(dictionary=True) as cur:
-            cur.execute(sql, (id,)) #Ejecuta la consulta
+            cur.execute(sql, (client_id,)) #Ejecuta la consulta
             row = cur.fetchone() #Asigna a row un resultado
 
         #Si hubo resultado, se convierte a Client y se retorna, si no, regresa None
@@ -60,10 +60,10 @@ class ClientRepository:
     def get_by_name(self, name):
         #Consulta SQL, busca coincidencias parciales en nombre y apellidos
         sql = """
-            SELECT id, paternalSurname, maternalSurname, name
+            SELECT id, paternal_surname, maternal_surname, name
             FROM client
-            WHERE CONCAT_WS(' ', name, paternalSurname, maternalSurname) LIKE %s
-            ORDER BY paternalSurname, maternalSurname, name
+            WHERE CONCAT_WS(' ', name, paternal_surname, maternal_surname) LIKE %s
+            ORDER BY paternal_surname, maternal_surname, name
         """
         with self.__connection.cursor(dictionary=True) as cur:
             cur.execute(sql, (f"%{name}%",)) #El % permite buscar texto contenido
@@ -79,9 +79,9 @@ class ClientRepository:
     def get_all(self):
         #Consulta SQL
         sql = """
-            SELECT id, paternalSurname, maternalSurname, name
+            SELECT id, paternal_surname, maternal_surname, name
             FROM client
-            ORDER BY paternalSurname, maternalSurname, name
+            ORDER BY paternal_surname, maternal_surname, name
         """
         with self.__connection.cursor(dictionary=True) as cur:
             cur.execute(sql) #Ejecuta la consulta
@@ -90,36 +90,36 @@ class ClientRepository:
         return [self._to_client(row) for row in rows]
 
     #---------------------------------------------------------------------------------
-    # ACTUALIZAR USUARIO
+    # ACTUALIZAR CLIENTE
     #---------------------------------------------------------------------------------
 
     def update(self, client):
         #Consulta SQL
         sql = """
             UPDATE client
-            SET paternalSurname = %s, maternalSurname = %s, name = %s
+            SET paternal_surname = %s, maternal_surname = %s, name = %s
             WHERE id = %s
         """
         with self.__connection.cursor() as cur:
             cur.execute(sql, (
-                client.getPaternalSurname(),
-                client.getMaternalSurname(),
-                client.getName(),
-                client.getId()
+                client.get_paternal_surname(),
+                client.get_maternal_surname(),
+                client.get_name(),
+                client.get_id()
             )) #Ejecuta la consulta
-            updated = cur.rowcount > 0 #True si se encontró el cliente
+            updated = cur.rowcount > 0
 
         return updated
 
     #---------------------------------------------------------------------------------
-    # ELIMINAR USUARIO
+    # ELIMINAR CLIENTE
     #---------------------------------------------------------------------------------
 
-    def delete(self, id):
+    def delete(self, client_id):
         #Consulta SQL, por el ON DELETE CASCADE también se borran sus cuentas
         sql = "DELETE FROM client WHERE id = %s"
         with self.__connection.cursor() as cur:
-            cur.execute(sql, (id,)) #Ejecuta la consulta
+            cur.execute(sql, (client_id,)) #Ejecuta la consulta
             deleted = cur.rowcount > 0 #True si se borró algún registro
 
         return deleted

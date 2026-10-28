@@ -5,31 +5,31 @@ USE BankAccounts;
 DROP TABLE IF EXISTS  client;
 CREATE TABLE client (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    paternalSurname VARCHAR(100) NOT NULL,
-    maternalSurname VARCHAR(100) NOT NULL,
+    paternal_surname VARCHAR(100) NOT NULL,
+    maternal_surname VARCHAR(100) NOT NULL,
     name VARCHAR(100) NOT NULL
 ) AUTO_INCREMENT = 1000;
 
 DROP TABLE IF EXISTS  account;
 CREATE TABLE account (
-    accountNumber INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    idClient INT NOT NULL,
+    account_number INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    id_client INT NOT NULL,
     balance DECIMAL(10,2) NOT NULL,
-    createdAt DATE NOT NULL,
+    created_at DATE NOT NULL,
 
     CONSTRAINT chk_positive_c_balance CHECK (balance >= 0),
-    CONSTRAINT fk_client FOREIGN KEY (idClient) REFERENCES client(id) ON DELETE CASCADE
+    CONSTRAINT fk_client FOREIGN KEY (id_client) REFERENCES client(id) ON DELETE CASCADE
 
 )AUTO_INCREMENT = 1000;
 
-DROP TABLE IF EXISTS  creditAccount;
-CREATE TABLE creditAccount (
-    accountNumber INT NOT NULL PRIMARY KEY,
-    creditLimit DECIMAL(10,2) NOT NULL,
+DROP TABLE IF EXISTS  credit_account;
+CREATE TABLE credit_account (
+    account_number INT NOT NULL PRIMARY KEY,
+    credit_limit DECIMAL(10,2) NOT NULL,
     debt DECIMAL(10,2) NOT NULL DEFAULT 0,
-    CONSTRAINT chk_credit_limit CHECK (creditLimit >= 0),
-    CONSTRAINT chk_credit_debt CHECK (debt >= 0 AND debt <= creditLimit),
-    CONSTRAINT fk_credit_account FOREIGN KEY (accountNumber)
-        REFERENCES account(accountNumber) ON DELETE CASCADE
+    CONSTRAINT chk_credit_limit CHECK (credit_limit >= 0),
+    CONSTRAINT chk_credit_debt CHECK (debt >= 0 AND debt <= credit_limit),
+    CONSTRAINT fk_credit_account FOREIGN KEY (account_number)
+        REFERENCES account(account_number) ON DELETE CASCADE
 );
 

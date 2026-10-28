@@ -1,30 +1,30 @@
 class Client:
-    def __init__(self, id, paternalSurname, maternalSurname, name):
+    def __init__(self, id, paternal_surname, maternal_surname, name):
         self.__id = id
-        self.__paternalSurname = paternalSurname
-        self.__maternalSurname = maternalSurname
+        self.__paternal_surname = paternal_surname
+        self.__maternal_surname = maternal_surname
         self.__name = name
 
-    def getId(self):
+    def get_id(self):
         return self.__id
 
-    def getPaternalSurname(self):
-        return self.__paternalSurname
+    def get_paternal_surname(self):
+        return self.__paternal_surname
 
-    def getMaternalSurname(self):
-        return self.__maternalSurname
+    def get_maternal_surname(self):
+        return self.__maternal_surname
 
-    def getName(self):
+    def get_name(self):
         return self.__name
 
-    def setId(self, id):
+    def set_id(self, id):
         self.__id = id
 
-    def setPaternalSurname(self, paternalSurname):
-        self.__paternalSurname = paternalSurname
+    def set_paternal_surname(self, paternal_surname):
+        self.__paternal_surname = paternal_surname
 
-    def setMaternalSurname(self, maternalSurname):
-        self.__maternalSurname = maternalSurname
+    def set_maternal_surname(self, maternal_surname):
+        self.__maternal_surname = maternal_surname
 
-    def setName(self, name):
+    def set_name(self, name):
         self.__name = name
