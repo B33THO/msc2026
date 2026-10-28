@@ -19,11 +19,3 @@ class CreditAccount(Account):
 
     def setDebt(self, debt):
         self.__debt = debt
-
-    def getCreditLimit(self):
-        return self.__creditLimit
-
-    def getDebt(self):
-        return self.__debt
-
-
