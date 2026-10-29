@@ -8,6 +8,7 @@ class ClientService:
         self.__repository = repository or ClientRepository()
 
     def _clean_names(self, paternal_surname, maternal_surname, name):
+        #Valida que los tres campos tengan texto y los guarda en mayúsculas
         paternal_surname = validate_required_text(paternal_surname, 'Apellido paterno').upper()
         maternal_surname = validate_required_text(maternal_surname, 'Apellido materno').upper()
         name = validate_required_text(name, 'Nombre').upper()
@@ -29,6 +30,7 @@ class ClientService:
 
         paternal_surname, maternal_surname, name = self._clean_names(paternal_surname, maternal_surname, name)
 
+        #Se verifica que el cliente exista antes de actualizarlo
         client_to_update = self.__repository.get_by_id(client_id)
         if not client_to_update:
             raise ValueError('Cliente no encontrado.')

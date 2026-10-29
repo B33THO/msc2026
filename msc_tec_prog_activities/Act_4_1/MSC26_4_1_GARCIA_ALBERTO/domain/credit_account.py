@@ -1,10 +1,12 @@
 from domain.account import Account
 
 
+#Cuenta de crédito: hereda los datos de Account y agrega el límite y el adeudo
+#(tabla credit_account)
 class CreditAccount(Account):
 
-    def __init__(self, id_client, account_number, balance, created_at, credit_limit, debt):
-        super().__init__(id_client, account_number, balance, created_at)
+    def __init__(self, account_number, id_client, balance, created_at, credit_limit, debt):
+        super().__init__(account_number, id_client, balance, created_at)
         self.__credit_limit = credit_limit
         self.__debt = debt
 

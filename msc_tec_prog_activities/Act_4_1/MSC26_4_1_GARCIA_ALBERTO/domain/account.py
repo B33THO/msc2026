@@ -1,3 +1,4 @@
+#Cuenta de ahorro (tabla account); también es la clase base de CreditAccount
 class Account:
     def __init__(self, account_number, id_client,balance, created_at):
         self.__account_number = account_number

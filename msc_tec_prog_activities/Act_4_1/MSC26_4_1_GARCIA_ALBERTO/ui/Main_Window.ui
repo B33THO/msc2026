@@ -66,6 +66,46 @@
        <normaloff>../icons/logout_24dp.svg</normaloff>../icons/logout_24dp.svg</iconset>
      </property>
     </widget>
+    <widget class="QToolButton" name="btn_import">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>10</y>
+       <width>51</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Importar datos desde archivo</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../icons/file_save_24dp.svg</normaloff>../icons/file_save_24dp.svg</iconset>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="btn_export">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>10</y>
+       <width>51</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Exportar datos</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../icons/file_export_24dp.svg</normaloff>../icons/file_export_24dp.svg</iconset>
+     </property>
+    </widget>
    </widget>
    <widget class="QTableView" name="tv_clients_table">
     <property name="geometry">

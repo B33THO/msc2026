@@ -10,6 +10,7 @@ def validate_required_text(value, field_name, max_length = 100):
     if len(value) > max_length:
         raise ValueError(f'El campo {field_name} debe ser menor o igual a {max_length} caracteres')
 
+    #Regresa el texto ya sin espacios al inicio y al final
     return value
 
 

@@ -29,5 +29,6 @@ class Client:
     def set_name(self, name):
         self.__name = name
 
+    #Nombre completo, se usa para mostrar al cliente en la tabla
     def __str__(self):
         return f'{self.__paternal_surname} {self.__maternal_surname} {self.__name}'
