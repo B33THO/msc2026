@@ -28,3 +28,6 @@ class Client:
 
     def set_name(self, name):
         self.__name = name
+
+    def __str__(self):
+        return f'{self.__paternal_surname} {self.__maternal_surname} {self.__name}'

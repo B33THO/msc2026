@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>494</height>
+    <width>365</width>
+    <height>543</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,13 +16,13 @@
   <widget class="QWidget" name="widget" native="true">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>60</y>
+     <x>20</x>
+     <y>50</y>
      <width>311</width>
      <height>181</height>
     </rect>
    </property>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="le_paternal">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -35,7 +35,7 @@
      <string> Apellido Paterno</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_2">
+   <widget class="QLineEdit" name="le_maternal">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -48,7 +48,7 @@
      <string> Apellido Materno</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_3">
+   <widget class="QLineEdit" name="le_name">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -61,6 +61,160 @@
      <string> Nombre(s)</string>
     </property>
    </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>250</y>
+     <width>311</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Tipo de cuenta</string>
+   </property>
+   <widget class="QRadioButton" name="rb_debit">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>121</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Débito</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="rb_credit">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>30</y>
+      <width>111</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Crédito</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>340</y>
+     <width>311</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Saldo inicial</string>
+   </property>
+   <widget class="QDoubleSpinBox" name="dsb_balance">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>20</y>
+      <width>191</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_3">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>410</y>
+     <width>311</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Límite de crédito</string>
+   </property>
+   <widget class="QDoubleSpinBox" name="dsb_credit_limit">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>20</y>
+      <width>191</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="btn_create">
+   <property name="geometry">
+    <rect>
+     <x>244</x>
+     <y>490</y>
+     <width>81</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Guardar</string>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/save_24dp_75FB4C.svg</normaloff>../icons/save_24dp_75FB4C.svg</iconset>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_cancel">
+   <property name="geometry">
+    <rect>
+     <x>154</x>
+     <y>490</y>
+     <width>81</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Cancelar</string>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/cancel_24dp.svg</normaloff>../icons/cancel_24dp.svg</iconset>
+   </property>
+  </widget>
+  <widget class="QToolButton" name="tbtn_clear_form">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>20</y>
+     <width>25</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/ink_eraser_24dp.svg</normaloff>../icons/ink_eraser_24dp.svg</iconset>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_title">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>20</y>
+     <width>201</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Titulo</string>
+   </property>
   </widget>
  </widget>
  <resources/>

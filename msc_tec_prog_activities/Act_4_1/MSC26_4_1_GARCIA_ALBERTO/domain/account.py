@@ -1,7 +1,7 @@
 class Account:
-    def __init__(self, id_client, account_number, balance, created_at):
-        self.__id_client = id_client
+    def __init__(self, account_number, id_client,balance, created_at):
         self.__account_number = account_number
+        self.__id_client = id_client
         self.__balance = balance
         self.__created_at = created_at
 
