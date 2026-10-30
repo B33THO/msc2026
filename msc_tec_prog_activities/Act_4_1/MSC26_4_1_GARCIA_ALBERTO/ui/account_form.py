@@ -1,16 +1,13 @@
-from datetime import date
 from pathlib import Path
 
 from PyQt6 import uic
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import QDate, pyqtSignal
 from PyQt6.QtWidgets import QDialog, QMessageBox
 
 from domain.credit_account import CreditAccount
-from services.account_service import AccountService
-from services.client_service import ClientService
+from services.account_service import AccountService, MAX_AMOUNT, MIN_DATE
 
 UI_FILE = Path(__file__).parent / "Create_Account_Window.ui"
-MAX_AMOUNT = 99_999_999.99 #Máximo que cabe en DECIMAL(10,2)
 
 
 class AccountForm(QDialog):
@@ -22,7 +19,6 @@ class AccountForm(QDialog):
         uic.loadUi(UI_FILE, self) #Carga la ventana diseñada en Qt Designer
 
         self.__account_service = AccountService()
-        self.__client_service = ClientService()
         #Si recibe un par (Client, cuenta) la ventana es para editar, si no, para crear
         self.__client_account = client_account
 
@@ -34,8 +30,11 @@ class AccountForm(QDialog):
 
     def config_form(self):
         #Por defecto el QDoubleSpinBox solo llega a 99.99
-        self.dsb_balance.setMaximum(MAX_AMOUNT)
-        self.dsb_credit_limit.setMaximum(MAX_AMOUNT)
+        self.dsb_balance.setMaximum(float(MAX_AMOUNT))
+        self.dsb_credit_limit.setMaximum(float(MAX_AMOUNT))
+        #La fecha de apertura inicia en hoy y no permite fechas futuras ni anteriores a MIN_DATE
+        self.de_created_at.setMinimumDate(QDate(MIN_DATE))
+        self.reset_created_at()
         #Inicia como cuenta de ahorro, con el límite de crédito deshabilitado
         self.rb_debit.setChecked(True)
         self.groupBox_3.setEnabled(False)
@@ -69,6 +68,9 @@ class AccountForm(QDialog):
         self.groupBox.setEnabled(False)
         self.dsb_balance.setValue(float(account.get_balance()))
         self.dsb_balance.setEnabled(False)
+        #La fecha de apertura tampoco se edita
+        self.de_created_at.setDate(QDate(account.get_created_at()))
+        self.de_created_at.setEnabled(False)
 
         if is_credit:
             self.dsb_credit_limit.setValue(float(account.get_credit_limit()))
@@ -90,26 +92,18 @@ class AccountForm(QDialog):
             QMessageBox.critical(self, "Error", f"No se pudo guardar la cuenta:\n{e}")
 
     def create_account(self):
-        #Primero se registra el cliente para obtener su id y ligarlo a la cuenta
-        client = self.__client_service.create(
+        #Cliente y cuenta se guardan juntos en una transacción: si falla la cuenta
+        #tampoco se registra el cliente
+        credit_limit = self.dsb_credit_limit.value() if self.rb_credit.isChecked() else None
+
+        client, account = self.__account_service.create_client_with_account(
             self.le_paternal.text(),
             self.le_maternal.text(),
-            self.le_name.text()
+            self.le_name.text(),
+            self.dsb_balance.value(),
+            self.de_created_at.date().toPyDate(),
+            credit_limit
         )
-
-        if self.rb_credit.isChecked():
-            account = self.__account_service.create_credit_account(
-                client.get_id(),
-                self.dsb_balance.value(),
-                date.today(),
-                self.dsb_credit_limit.value()
-            )
-        else:
-            account = self.__account_service.create(
-                client.get_id(),
-                self.dsb_balance.value(),
-                date.today()
-            )
 
         self.saved.emit()
         QMessageBox.information(self, "Cuenta creada", f"Se creó la cuenta {account.get_account_number()}")
@@ -117,21 +111,19 @@ class AccountForm(QDialog):
         self.clear_form()
 
     def update_account(self):
-        client, account = self.__client_account
+        _, account = self.__client_account
 
-        #Al editar solo cambian el nombre del cliente y, si es de crédito, el límite
-        self.__client_service.update(
-            client.get_id(),
+        #Al editar solo cambian el nombre del cliente y, si es de crédito, el límite;
+        #se guardan juntos para que un límite inválido no deje el nombre ya cambiado
+        credit_limit = self.dsb_credit_limit.value() if isinstance(account, CreditAccount) else None
+
+        self.__account_service.update_client_and_account(
+            account.get_account_number(),
             self.le_paternal.text(),
             self.le_maternal.text(),
-            self.le_name.text()
+            self.le_name.text(),
+            credit_limit
         )
-
-        if isinstance(account, CreditAccount):
-            self.__account_service.update_credit_limit(
-                account.get_account_number(),
-                self.dsb_credit_limit.value()
-            )
 
         self.saved.emit()
         self.accept() #Cierra el diálogo
@@ -145,5 +137,13 @@ class AccountForm(QDialog):
         self.le_name.clear()
         self.dsb_balance.setValue(0)
         self.dsb_credit_limit.setValue(0)
+        self.reset_created_at()
         self.rb_debit.setChecked(True)
         self.le_paternal.setFocus()
+
+    def reset_created_at(self):
+        #El máximo se recalcula cada vez: si la ventana sigue abierta después de medianoche
+        #el nuevo día debe poder seleccionarse
+        today = QDate.currentDate()
+        self.de_created_at.setMaximumDate(today)
+        self.de_created_at.setDate(today)

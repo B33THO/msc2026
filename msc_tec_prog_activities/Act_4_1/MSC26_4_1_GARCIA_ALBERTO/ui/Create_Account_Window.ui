@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>365</width>
-    <height>543</height>
+    <height>613</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -147,11 +147,40 @@
     </property>
    </widget>
   </widget>
+  <widget class="QGroupBox" name="groupBox_4">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>480</y>
+     <width>311</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Fecha de apertura</string>
+   </property>
+   <widget class="QDateEdit" name="de_created_at">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>20</y>
+      <width>191</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="displayFormat">
+     <string>dd/MM/yyyy</string>
+    </property>
+    <property name="calendarPopup">
+     <bool>true</bool>
+    </property>
+   </widget>
+  </widget>
   <widget class="QPushButton" name="btn_create">
    <property name="geometry">
     <rect>
      <x>244</x>
-     <y>490</y>
+     <y>560</y>
      <width>81</width>
      <height>23</height>
     </rect>
@@ -168,7 +197,7 @@
    <property name="geometry">
     <rect>
      <x>154</x>
-     <y>490</y>
+     <y>560</y>
      <width>81</width>
      <height>23</height>
     </rect>

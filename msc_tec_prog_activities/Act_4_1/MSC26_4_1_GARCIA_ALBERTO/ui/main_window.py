@@ -8,9 +8,8 @@ from PyQt6.QtWidgets import (QAbstractItemView, QFileDialog, QHeaderView, QInput
                              QMessageBox)
 
 from domain.credit_account import CreditAccount
-from services.account_service import AccountService
-from services.client_service import ClientService
-from ui.account_form import AccountForm, MAX_AMOUNT
+from services.account_service import AccountExistsError, AccountService, MAX_AMOUNT
+from ui.account_form import AccountForm
 from utilities.file_handler import read_file, write_file
 
 UI_FILE = Path(__file__).parent / "Main_Window.ui"
@@ -18,16 +17,18 @@ UI_FILE = Path(__file__).parent / "Main_Window.ui"
 DATA_DIR = Path(__file__).parent.parent / "data"
 FILE_FILTER = "CSV (*.csv);;Excel (*.xlsx)"
 #Columnas de los archivos; exportar e importar usan el mismo orden para que un
-#archivo exportado se pueda volver a importar. No lleva número de cuenta porque
-#se genera automáticamente al crear la cuenta.
+#archivo exportado se pueda volver a importar. El número de cuenta evita duplicados:
+#si ya existe en la BD la fila se omite; si viene vacío se genera uno nuevo.
 file_headers = [
+    "No. Cuenta",
     "Apellido paterno",
     "Apellido materno",
     "Nombre",
     "Tipo",
     "Saldo",
     "Límite de crédito",
-    "Adeudo"
+    "Adeudo",
+    "Fecha de apertura"
 ]
 TYPE_SAVINGS = "AHORRO"
 TYPE_CREDIT = "CREDITO"
@@ -35,6 +36,7 @@ MAX_ERRORS_SHOWN = 10 #Máximo de errores que se listan en el resumen de importa
 table_headers = [
     "No. Cuenta",
     "Nombre del Cliente",
+    "Fecha de apertura",
     "Saldo",
     "Límite de crédito",
     "Crédito utilizado",
@@ -52,7 +54,6 @@ class MainWindow(QMainWindow):
         uic.loadUi(UI_FILE, self) #Carga la ventana diseñada en Qt Designer
 
         self.__account_service = AccountService()
-        self.__client_service = ClientService() #Para registrar los clientes al importar
         #Pares (Client, cuenta) que se muestran en la tabla, en el mismo orden que las filas
         self.__rows = []
 
@@ -85,8 +86,11 @@ class MainWindow(QMainWindow):
         self.btn_edit_account.clicked.connect(self.open_edit_form)
         self.btn_delete_account.clicked.connect(self.delete_account)
         self.btn_exit.clicked.connect(self.close)
+        self.actionSalir.triggered.connect(self.close)
         self.btn_export.clicked.connect(self.export_file)
+        self.actionExportar_Datos.triggered.connect(self.export_file)
         self.btn_import.clicked.connect(self.import_file)
+        self.actionImportar_datos.triggered.connect(self.import_file)
 
         self.comboBox.currentTextChanged.connect(self.load_accounts)
         self.le_search.returnPressed.connect(self.search_by_account_number)
@@ -109,6 +113,7 @@ class MainWindow(QMainWindow):
             row = [
                 str(account.get_account_number()),
                 str(client),
+                account.get_created_at().strftime("%d/%m/%Y"),
                 self.money(account.get_balance())
             ]
             if isinstance(account, CreditAccount):
@@ -121,7 +126,7 @@ class MainWindow(QMainWindow):
                 row += ["", "", ""] #Las de ahorro no tienen datos de crédito
 
             items = [QStandardItem(value) for value in row]
-            #Los números se alinean a la derecha
+            #La fecha y los números se alinean a la derecha
             for item in items[2:]:
                 item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             self.model.appendRow(items)
@@ -236,7 +241,7 @@ class MainWindow(QMainWindow):
 
     def ask_amount(self, title):
         #Diálogo con valor inicial 0, rango de 0 a MAX_AMOUNT y 2 decimales; None si se cancela
-        amount, ok = QInputDialog.getDouble(self, title, "Cantidad:", 0, 0, MAX_AMOUNT, 2)
+        amount, ok = QInputDialog.getDouble(self, title, "Cantidad:", 0, 0, float(MAX_AMOUNT), 2)
         return amount if ok else None
 
     def deposit(self):
@@ -287,6 +292,7 @@ class MainWindow(QMainWindow):
         #Se guardan los valores sin formato de moneda ("$ 1,250.00" no se podría volver a leer);
         #se convierten a float porque openpyxl no acepta Decimal
         row = [
+            account.get_account_number(),
             client.get_paternal_surname(),
             client.get_maternal_surname(),
             client.get_name()
@@ -297,6 +303,8 @@ class MainWindow(QMainWindow):
         else:
             #Las de ahorro no tienen datos de crédito
             row += [TYPE_SAVINGS, float(account.get_balance()), "", ""]
+        #Se guarda como date: en CSV queda como AAAA-MM-DD y en XLSX como celda de fecha
+        row.append(account.get_created_at())
         return row
 
     #--------------------------------------------------------------------------
@@ -314,6 +322,8 @@ class MainWindow(QMainWindow):
             return
 
         imported = 0
+        skipped = 0 #Filas cuyo número de cuenta ya existe en la BD
+        without_date = 0 #Filas importadas que no traían fecha de apertura
         errors = []
         #start=2 para que el número coincida con la fila del archivo (la 1 es el encabezado)
         for row_number, row in enumerate(rows, start=2):
@@ -321,15 +331,19 @@ class MainWindow(QMainWindow):
             if not any(self.cell(row, i) for i in range(len(file_headers))):
                 continue
             try:
-                self.import_row(row)
+                if not self.import_row(row):
+                    without_date += 1
                 imported += 1
+            except AccountExistsError:
+                #La cuenta ya está registrada (p. ej. se importa de nuevo un archivo exportado)
+                skipped += 1
             except Exception as e:
                 #Una fila con error no detiene la importación, se registra y se sigue con la siguiente
                 errors.append(f"Fila {row_number}: {e}")
 
         #Las cuentas se guardaron en la BD, así que se recarga la tabla desde ahí
         self.load_accounts()
-        self.show_import_summary(imported, errors)
+        self.show_import_summary(imported, skipped, without_date, errors)
 
     @staticmethod
     def cell(row, index):
@@ -340,32 +354,41 @@ class MainWindow(QMainWindow):
         return str(row[index]).strip()
 
     def import_row(self, row):
-        account_type = self.cell(row, 3).upper().replace("É", "E") #Acepta CREDITO y CRÉDITO
+        account_type = self.cell(row, 4).upper().replace("É", "E") #Acepta CREDITO y CRÉDITO
         if account_type not in (TYPE_SAVINGS, TYPE_CREDIT):
-            raise ValueError(f"Tipo de cuenta '{self.cell(row, 3)}' inválido, usa {TYPE_SAVINGS} o {TYPE_CREDIT}")
+            raise ValueError(f"Tipo de cuenta '{self.cell(row, 4)}' inválido, usa {TYPE_SAVINGS} o {TYPE_CREDIT}")
 
-        #Primero se registra el cliente para obtener su id y ligarlo a la cuenta (igual que en AccountForm)
-        client = self.__client_service.create(self.cell(row, 0), self.cell(row, 1), self.cell(row, 2))
+        #Sin número de cuenta (archivo hecho a mano) se genera uno nuevo al guardar
+        account_number = self.cell(row, 0) or None
 
-        try:
-            if account_type == TYPE_CREDIT:
-                self.__account_service.create_credit_account(
-                    client.get_id(),
-                    self.cell(row, 4),
-                    date.today(),
-                    self.cell(row, 5),
-                    self.cell(row, 6) or 0 #Si no trae adeudo se toma como 0
-                )
-            else:
-                self.__account_service.create(client.get_id(), self.cell(row, 4), date.today())
-        except Exception:
-            #Si la cuenta no se pudo crear (p. ej. saldo inválido) se elimina el cliente
-            #para no dejar un cliente sin cuenta, y se vuelve a lanzar el error original
-            self.__client_service.delete(client.get_id())
-            raise
+        #Se pasa el valor original (no self.cell) porque en XLSX la fecha llega como datetime o número;
+        #si el archivo no trae fecha se toma hoy y se avisa
+        has_date = bool(self.cell(row, 8))
+        created_at = row[8] if has_date else date.today()
 
-    def show_import_summary(self, imported, errors):
+        #Si es de ahorro no se pasa límite (None) ni adeudo; si la de crédito no trae adeudo se toma como 0
+        credit_limit = None
+        debt = 0
+        if account_type == TYPE_CREDIT:
+            credit_limit = self.cell(row, 6)
+            debt = self.cell(row, 7) or 0
+
+        #Cliente y cuenta se guardan en una sola transacción, si algo falla no queda ninguno.
+        #Si el número de cuenta ya existe se lanza AccountExistsError y la fila se omite
+        self.__account_service.create_client_with_account(
+            self.cell(row, 1), self.cell(row, 2), self.cell(row, 3),
+            self.cell(row, 5), created_at, credit_limit, debt, account_number
+        )
+
+        return has_date
+
+    def show_import_summary(self, imported, skipped, without_date, errors):
         message = f"Se importaron {imported} cuenta(s)."
+        if skipped:
+            message += f"\nSe omitieron {skipped} cuenta(s) que ya existían."
+        if without_date:
+            message += (f"\n{without_date} cuenta(s) no traían fecha de apertura "
+                        f"y se registraron con la fecha de hoy.")
         if not errors:
             QMessageBox.information(self, "Importar", message)
             return

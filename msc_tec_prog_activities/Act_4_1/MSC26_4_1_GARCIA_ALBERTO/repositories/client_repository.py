@@ -20,20 +20,25 @@ class ClientRepository:
     #---------------------------------------------------------------------------------
 
     def create(self, client):
-        #Consulta SQL
-        sql = """
-            INSERT INTO client (paternal_surname, maternal_surname, name) 
-            VALUES (%s, %s, %s)
-        """
         with self.__connection.cursor() as cur: #Se usa el cursor de la conexión
-            cur.execute(sql, (
-                client.get_paternal_surname(),
-                client.get_maternal_surname(),
-                client.get_name()
-            )) #Ejecuta la consulta
-            client.set_id(cur.lastrowid) #Asignamos el id creado al modelo Client
+            self.insert(cur, client)
 
         return client
+
+    @staticmethod
+    def insert(cur, client):
+        #Ejecuta el INSERT con un cursor recibido, así otro repositorio puede registrar
+        #el cliente dentro de su misma transacción (p. ej. cliente + cuenta)
+        sql = """
+            INSERT INTO client (paternal_surname, maternal_surname, name)
+            VALUES (%s, %s, %s)
+        """
+        cur.execute(sql, (
+            client.get_paternal_surname(),
+            client.get_maternal_surname(),
+            client.get_name()
+        )) #Ejecuta la consulta
+        client.set_id(cur.lastrowid) #Asignamos el id creado al modelo Client
 
     #---------------------------------------------------------------------------------
     # CONSULTA POR ID
@@ -94,22 +99,26 @@ class ClientRepository:
     #---------------------------------------------------------------------------------
 
     def update(self, client):
-        #Consulta SQL
+        with self.__connection.cursor() as cur:
+            updated = self.update_row(cur, client)
+
+        return updated
+
+    @staticmethod
+    def update_row(cur, client):
+        #Igual que insert: recibe el cursor para poder ir en la transacción de otro repositorio
         sql = """
             UPDATE client
             SET paternal_surname = %s, maternal_surname = %s, name = %s
             WHERE id = %s
         """
-        with self.__connection.cursor() as cur:
-            cur.execute(sql, (
-                client.get_paternal_surname(),
-                client.get_maternal_surname(),
-                client.get_name(),
-                client.get_id()
-            )) #Ejecuta la consulta
-            updated = cur.rowcount > 0
-
-        return updated
+        cur.execute(sql, (
+            client.get_paternal_surname(),
+            client.get_maternal_surname(),
+            client.get_name(),
+            client.get_id()
+        )) #Ejecuta la consulta
+        return cur.rowcount > 0
 
     #---------------------------------------------------------------------------------
     # ELIMINAR CLIENTE

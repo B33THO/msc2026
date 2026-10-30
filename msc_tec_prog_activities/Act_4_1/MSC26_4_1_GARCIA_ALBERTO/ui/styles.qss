@@ -1,0 +1,408 @@
+/* ============================================================================
+   AGR Bank - Hoja de estilos
+   Estilo minimalista: fondo claro, grises neutros y un solo color de acento.
+
+   Paleta
+     Fondo ventana   #F7F8FA      Texto principal  #1F2937
+     Superficie      #FFFFFF      Texto secundario #6B7280
+     Borde           #E5E7EB      Acento           #3B5BDB
+     Borde hover     #CBD2DC      Acento hover     #364FC7
+     Peligro         #E03131
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   GENERAL
+   --------------------------------------------------------------------------- */
+QMainWindow, QDialog {
+    background-color: #F7F8FA;
+}
+
+QWidget {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 9pt;
+    color: #1F2937;
+}
+
+QLabel {
+    background: transparent;
+    color: #6B7280;
+}
+
+/* Títulos: "AGR Bank" en la ventana principal y el título del formulario */
+QLabel#label_3 {
+    font-size: 22pt;
+    font-weight: 300;
+    color: #1F2937;
+}
+
+QLabel#lb_title {
+    font-size: 14pt;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+/* Texto de ayuda de la parte inferior */
+QLabel#label_2 {
+    color: #9CA3AF;
+    font-style: italic;
+}
+
+/* ---------------------------------------------------------------------------
+   CAMPOS DE TEXTO, NÚMEROS Y FECHAS
+   --------------------------------------------------------------------------- */
+QLineEdit, QAbstractSpinBox, QComboBox {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    padding: 3px 8px;
+    selection-background-color: #DBE4FF;
+    selection-color: #1F2937;
+}
+
+QLineEdit:hover, QAbstractSpinBox:hover, QComboBox:hover {
+    border-color: #CBD2DC;
+}
+
+QLineEdit:focus, QAbstractSpinBox:focus, QComboBox:focus {
+    border-color: #3B5BDB;
+}
+
+QLineEdit:disabled, QAbstractSpinBox:disabled, QComboBox:disabled {
+    background-color: #F3F4F6;
+    color: #9CA3AF;
+}
+
+/* Lista desplegable del comboBox */
+QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    outline: 0;
+    padding: 4px;
+    selection-background-color: #EDF2FF;
+    selection-color: #1F2937;
+}
+
+/* Flechas del comboBox, spinBox y dateEdit
+   (el prefijo icons: se registra con QDir.addSearchPath en main.py) */
+QComboBox::drop-down, QDateEdit::drop-down {
+    border: none;
+    width: 22px;
+}
+
+QComboBox::down-arrow, QDateEdit::down-arrow, QAbstractSpinBox::down-arrow {
+    image: url(icons:chevron_down_12dp.svg);
+    width: 12px;
+    height: 12px;
+}
+
+QAbstractSpinBox::up-arrow {
+    image: url(icons:chevron_up_12dp.svg);
+    width: 12px;
+    height: 12px;
+}
+
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
+    border: none;
+    background: transparent;
+    width: 18px;
+}
+
+QAbstractSpinBox::up-button:hover, QAbstractSpinBox::down-button:hover {
+    background-color: #F3F4F6;
+}
+
+QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::down-arrow:disabled {
+    image: none;
+}
+
+/* ---------------------------------------------------------------------------
+   BOTONES
+   --------------------------------------------------------------------------- */
+/* Botones con texto (formulario y cuadros de diálogo) */
+QPushButton {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    padding: 5px 16px;
+    min-width: 64px;
+    color: #374151;
+}
+
+QPushButton:hover {
+    background-color: #F3F4F6;
+    border-color: #CBD2DC;
+}
+
+QPushButton:pressed {
+    background-color: #E5E7EB;
+}
+
+QPushButton:focus {
+    border-color: #3B5BDB;
+}
+
+/* Botón principal: Guardar / Crear */
+QPushButton#btn_create {
+    background-color: #3B5BDB;
+    border-color: #3B5BDB;
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+QPushButton#btn_create:hover {
+    background-color: #364FC7;
+    border-color: #364FC7;
+}
+
+QPushButton#btn_create:pressed {
+    background-color: #2F44AD;
+}
+
+/* Botones de icono (barra superior, búsqueda, limpiar formulario) */
+QToolButton {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+}
+
+QToolButton:hover {
+    background-color: #FFFFFF;
+    border-color: #E5E7EB;
+}
+
+QToolButton:pressed {
+    background-color: #EDF2FF;
+    border-color: #DBE4FF;
+}
+
+QToolButton:disabled {
+    background-color: transparent;
+}
+
+/* Acciones destructivas: eliminar y salir se marcan en rojo al pasar el mouse */
+QToolButton#btn_delete_account:hover,
+QToolButton#btn_exit:hover {
+    background-color: #FFF5F5;
+    border-color: #FFC9C9;
+}
+
+/* ---------------------------------------------------------------------------
+   TABLA
+   --------------------------------------------------------------------------- */
+QTableView {
+    background-color: #FFFFFF;
+    alternate-background-color: #FAFBFC;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    gridline-color: transparent;
+    selection-background-color: #EDF2FF;
+    selection-color: #1F2937;
+    outline: 0;
+}
+
+QTableView::item {
+    padding: 0px 8px;
+    border-bottom: 1px solid #F1F3F5;
+}
+
+QTableView::item:hover {
+    background-color: #F8F9FB;
+}
+
+QTableView::item:selected {
+    background-color: #EDF2FF;
+    color: #1F2937;
+}
+
+QHeaderView {
+    background-color: #FFFFFF;
+    border: none;
+}
+
+QHeaderView::section {
+    background-color: #FFFFFF;
+    color: #6B7280;
+    font-weight: 600;
+    padding: 8px;
+    border: none;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+QHeaderView::section:hover {
+    color: #1F2937;
+}
+
+QTableCornerButton::section {
+    background-color: #FFFFFF;
+    border: none;
+}
+
+/* ---------------------------------------------------------------------------
+   AGRUPADORES Y OPCIONES
+   --------------------------------------------------------------------------- */
+QGroupBox {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    margin-top: 14px;
+    padding-top: 6px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 4px;
+    color: #6B7280;
+    font-weight: 600;
+}
+
+QGroupBox:disabled {
+    background-color: #F9FAFB;
+}
+
+QGroupBox::title:disabled {
+    color: #B0B7C3;
+}
+
+QRadioButton {
+    background: transparent;
+    spacing: 6px;
+}
+
+QRadioButton:disabled {
+    color: #9CA3AF;
+}
+
+QRadioButton::indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 8px;
+    border: 1px solid #CBD2DC;
+    background-color: #FFFFFF;
+}
+
+QRadioButton::indicator:hover {
+    border-color: #3B5BDB;
+}
+
+/* El borde grueso del mismo color que el acento deja un punto blanco al centro */
+QRadioButton::indicator:checked {
+    border: 4px solid #3B5BDB;
+    width: 8px;
+    height: 8px;
+}
+
+QRadioButton::indicator:disabled {
+    background-color: #F3F4F6;
+    border-color: #E5E7EB;
+}
+
+QRadioButton::indicator:checked:disabled {
+    border: 4px solid #CBD2DC;
+}
+
+/* ---------------------------------------------------------------------------
+   MENÚS Y BARRA DE ESTADO
+   --------------------------------------------------------------------------- */
+QMenuBar {
+    background-color: #F7F8FA;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+QMenuBar::item {
+    background: transparent;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+QMenuBar::item:selected {
+    background-color: #E9ECEF;
+}
+
+QMenu {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 6px 24px 6px 12px;
+    border-radius: 4px;
+}
+
+QMenu::item:selected {
+    background-color: #EDF2FF;
+    color: #1F2937;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #E5E7EB;
+    margin: 4px 6px;
+}
+
+QStatusBar {
+    background-color: #F7F8FA;
+    border-top: 1px solid #E5E7EB;
+    color: #6B7280;
+}
+
+/* ---------------------------------------------------------------------------
+   BARRAS DE DESPLAZAMIENTO (delgadas)
+   --------------------------------------------------------------------------- */
+QScrollBar:vertical {
+    background: transparent;
+    width: 10px;
+    margin: 2px;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 10px;
+    margin: 2px;
+}
+
+QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+    background-color: #D1D5DB;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:vertical {
+    min-height: 24px;
+}
+
+QScrollBar::handle:horizontal {
+    min-width: 24px;
+}
+
+QScrollBar::handle:hover {
+    background-color: #9CA3AF;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line,
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: none;
+    width: 0;
+    height: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   CUADROS DE DIÁLOGO Y TOOLTIPS
+   --------------------------------------------------------------------------- */
+QMessageBox, QInputDialog {
+    background-color: #FFFFFF;
+}
+
+QMessageBox QLabel, QInputDialog QLabel {
+    color: #1F2937;
+}
+
+QToolTip {
+    background-color: #1F2937;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+}

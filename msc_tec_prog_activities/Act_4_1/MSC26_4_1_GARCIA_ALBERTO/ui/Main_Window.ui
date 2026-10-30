@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>836</width>
-    <height>527</height>
+    <width>1028</width>
+    <height>595</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>AGR Bank - Cuentas</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -21,16 +21,10 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>0</y>
-      <width>811</width>
+      <y>70</y>
+      <width>991</width>
       <height>71</height>
      </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QWidget{
- 
-	border-color: rgb(85, 170, 255);
-}</string>
     </property>
     <widget class="QToolButton" name="btn_create_account">
      <property name="geometry">
@@ -47,23 +41,6 @@
      <property name="icon">
       <iconset>
        <normaloff>../icons/person_add_24dp_666666.svg</normaloff>../icons/person_add_24dp_666666.svg</iconset>
-     </property>
-    </widget>
-    <widget class="QToolButton" name="btn_exit">
-     <property name="geometry">
-      <rect>
-       <x>750</x>
-       <y>10</y>
-       <width>51</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>...</string>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>../icons/logout_24dp.svg</normaloff>../icons/logout_24dp.svg</iconset>
      </property>
     </widget>
     <widget class="QToolButton" name="btn_import">
@@ -111,8 +88,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>140</y>
-      <width>811</width>
+      <y>210</y>
+      <width>991</width>
       <height>291</height>
      </rect>
     </property>
@@ -120,8 +97,8 @@
    <widget class="QToolButton" name="btn_edit_account">
     <property name="geometry">
      <rect>
-      <x>780</x>
-      <y>100</y>
+      <x>970</x>
+      <y>170</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -137,8 +114,8 @@
    <widget class="QToolButton" name="btn_delete_account">
     <property name="geometry">
      <rect>
-      <x>750</x>
-      <y>100</y>
+      <x>930</x>
+      <y>170</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -155,7 +132,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>99</y>
+      <y>169</y>
       <width>441</width>
       <height>31</height>
      </rect>
@@ -164,9 +141,9 @@
    <widget class="QComboBox" name="comboBox">
     <property name="geometry">
      <rect>
-      <x>470</x>
-      <y>101</y>
-      <width>181</width>
+      <x>460</x>
+      <y>170</y>
+      <width>261</width>
       <height>31</height>
      </rect>
     </property>
@@ -175,7 +152,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>440</y>
+      <y>510</y>
       <width>113</width>
       <height>31</height>
      </rect>
@@ -185,20 +162,20 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>450</y>
+      <y>520</y>
       <width>201</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Consultar cuentas con saldo menor a:</string>
+     <string>Cuentas con saldo menor o igual a:</string>
     </property>
    </widget>
    <widget class="QToolButton" name="btn_search_amount">
     <property name="geometry">
      <rect>
       <x>340</x>
-      <y>440</y>
+      <y>510</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -211,13 +188,61 @@
       <normaloff>../icons/search_reload_24dp_666666.svg</normaloff>../icons/search_reload_24dp_666666.svg</iconset>
     </property>
    </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>510</y>
+      <width>281</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Clic derecho sobre una cuenta para mas acciones</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>931</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>24</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>AGR Bank</string>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="btn_exit">
+    <property name="geometry">
+     <rect>
+      <x>940</x>
+      <y>10</y>
+      <width>51</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../icons/logout_24dp.svg</normaloff>../icons/logout_24dp.svg</iconset>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>836</width>
+     <width>1028</width>
      <height>21</height>
     </rect>
    </property>
@@ -226,13 +251,49 @@
      <string>Menú</string>
     </property>
     <addaction name="actionCrear_Cuenta"/>
+    <addaction name="separator"/>
+    <addaction name="actionExportar_Datos"/>
+    <addaction name="actionImportar_datos"/>
+    <addaction name="separator"/>
+    <addaction name="actionSalir"/>
    </widget>
    <addaction name="menuMen"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionCrear_Cuenta">
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/person_add_24dp_666666.svg</normaloff>../icons/person_add_24dp_666666.svg</iconset>
+   </property>
    <property name="text">
     <string>Crear Cuenta</string>
+   </property>
+  </action>
+  <action name="actionSalir">
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/logout_24dp.svg</normaloff>../icons/logout_24dp.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Salir</string>
+   </property>
+  </action>
+  <action name="actionExportar_Datos">
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/file_export_24dp.svg</normaloff>../icons/file_export_24dp.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Exportar Datos</string>
+   </property>
+  </action>
+  <action name="actionImportar_datos">
+   <property name="icon">
+    <iconset>
+     <normaloff>../icons/file_save_24dp.svg</normaloff>../icons/file_save_24dp.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Importar datos</string>
    </property>
   </action>
  </widget>

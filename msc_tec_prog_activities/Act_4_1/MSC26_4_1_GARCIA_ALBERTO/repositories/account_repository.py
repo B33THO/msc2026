@@ -2,6 +2,7 @@ from db.connection import Connection
 from domain.account import Account
 from domain.client import Client
 from domain.credit_account import CreditAccount
+from repositories.client_repository import ClientRepository
 
 
 class AccountRepository:
@@ -64,12 +65,7 @@ class AccountRepository:
     def create(self, account):
 
         with self.__connection.cursor() as cur:
-            cur.execute(self.SQL_CREATE_ACCOUNT, (
-                account.get_id_client(),
-                account.get_balance(),
-                account.get_created_at()
-            ))
-            account.set_account_number(cur.lastrowid) #Número de cuenta generado por el AUTO_INCREMENT
+            self._insert(cur, account)
 
         return account
 
@@ -80,21 +76,44 @@ class AccountRepository:
 
         #Ambos INSERT usan el mismo cursor, si falla uno se hace rollback de los dos
         with self.__connection.cursor() as cur:
-            cur.execute(self.SQL_CREATE_ACCOUNT, (
-                credit_account.get_id_client(),
-                credit_account.get_balance(),
-                credit_account.get_created_at()
-            ))
-            credit_account.set_account_number(cur.lastrowid)
-
-            #credit_account usa el mismo número de cuenta como llave primaria y foránea
-            cur.execute(self.SQL_CREATE_CREDIT_ACCOUNT, (
-                credit_account.get_account_number(),
-                credit_account.get_credit_limit(),
-                credit_account.get_debt()
-            ))
+            self._insert(cur, credit_account)
 
         return credit_account
+
+    # ---------------------------------------------------------------------------------
+    # CREAR CLIENTE Y SU CUENTA (ahorro o crédito)
+    # ---------------------------------------------------------------------------------
+    def create_with_client(self, client, account):
+
+        #Todos los INSERT van en la misma transacción: si falla la cuenta también se
+        #deshace el cliente, así nunca queda un cliente sin cuenta
+        with self.__connection.cursor() as cur:
+            ClientRepository.insert(cur, client)
+            account.set_id_client(client.get_id())
+            self._insert(cur, account)
+
+        return client, account
+
+    def _insert(self, cur, account):
+        #INSERT en account y, si es de crédito, también en credit_account.
+        #Si la cuenta no trae número se envía NULL y MySQL genera uno con el AUTO_INCREMENT;
+        #si trae uno (cuenta importada) se guarda con ese mismo número
+        cur.execute(self.SQL_CREATE_ACCOUNT, (
+            account.get_account_number(),
+            account.get_id_client(),
+            account.get_balance(),
+            account.get_created_at()
+        ))
+        if account.get_account_number() is None:
+            account.set_account_number(cur.lastrowid) #Número de cuenta generado por el AUTO_INCREMENT
+
+        if isinstance(account, CreditAccount):
+            #credit_account usa el mismo número de cuenta como llave primaria y foránea
+            cur.execute(self.SQL_CREATE_CREDIT_ACCOUNT, (
+                account.get_account_number(),
+                account.get_credit_limit(),
+                account.get_debt()
+            ))
 
     # ---------------------------------------------------------------------------------
     # CONSULTAR TODAS LAS CUENTAS
@@ -135,20 +154,37 @@ class AccountRepository:
     def update(self, account):
 
         with self.__connection.cursor() as cur:
-            cur.execute(self.SQL_UPDATE_ACCOUNT, (
-                account.get_balance(),
+            updated = self._update(cur, account)
+
+        return updated
+
+    # ---------------------------------------------------------------------------------
+    # ACTUALIZAR CLIENTE Y SU CUENTA
+    # ---------------------------------------------------------------------------------
+    def update_with_client(self, client, account):
+
+        #Los UPDATE de cliente y cuenta van en la misma transacción
+        with self.__connection.cursor() as cur:
+            client_updated = ClientRepository.update_row(cur, client)
+            account_updated = self._update(cur, account)
+
+        return client_updated or account_updated
+
+    def _update(self, cur, account):
+        cur.execute(self.SQL_UPDATE_ACCOUNT, (
+            account.get_balance(),
+            account.get_account_number()
+        ))
+        updated = cur.rowcount > 0
+
+        #Las de crédito también actualizan su tabla; ambos UPDATE van en la misma transacción
+        if isinstance(account, CreditAccount):
+            cur.execute(self.SQL_UPDATE_CREDIT_ACCOUNT, (
+                account.get_credit_limit(),
+                account.get_debt(),
                 account.get_account_number()
             ))
-            updated = cur.rowcount > 0
-
-            #Las de crédito también actualizan su tabla; ambos UPDATE van en la misma transacción
-            if isinstance(account, CreditAccount):
-                cur.execute(self.SQL_UPDATE_CREDIT_ACCOUNT, (
-                    account.get_credit_limit(),
-                    account.get_debt(),
-                    account.get_account_number()
-                ))
-                updated = updated or cur.rowcount > 0
+            updated = updated or cur.rowcount > 0
 
         #True si cambió alguna de las dos tablas
         return updated
@@ -170,8 +206,8 @@ class AccountRepository:
     # CONSULTAS SQL
     # ---------------------------------------------------------------------------------
     SQL_CREATE_ACCOUNT = """
-            INSERT INTO account (id_client, balance, created_at)
-            VALUES (%s, %s, %s)
+            INSERT INTO account (account_number, id_client, balance, created_at)
+            VALUES (%s, %s, %s, %s)
         """
 
     SQL_CREATE_CREDIT_ACCOUNT = """
