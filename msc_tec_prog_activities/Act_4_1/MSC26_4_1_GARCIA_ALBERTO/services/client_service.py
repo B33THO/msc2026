@@ -15,13 +15,8 @@ class ClientService:
         return paternal_surname, maternal_surname, name
 
     #--------------------------------------------------------------------------
-    # CREAR CLIENTE
+    # CREAR CLIENTE (se guarda junto con su cuenta en AccountService)
     #--------------------------------------------------------------------------
-    def create(self, paternal_surname, maternal_surname, name):
-
-        client = self.build_client(paternal_surname, maternal_surname, name)
-        return self.__repository.create(client)
-
     def build_client(self, paternal_surname, maternal_surname, name):
         #Valida los datos y regresa un Client sin id, todavía sin guardar en la BD
         paternal_surname, maternal_surname, name = self._clean_names(paternal_surname, maternal_surname, name)

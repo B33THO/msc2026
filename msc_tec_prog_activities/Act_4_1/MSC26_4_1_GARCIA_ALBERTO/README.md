@@ -109,6 +109,7 @@ Columnas del archivo (en este orden, la primera fila es el encabezado):
 
 ## Reglas de negocio
 
+- Cada cliente tiene una sola cuenta (de ahorro o de crédito); al eliminar la cuenta se elimina también el cliente.
 - Las cantidades no pueden ser negativas ni mayores a **99,999,999.99** (máximo de `DECIMAL(10,2)`);
   un depósito tampoco puede dejar el saldo por encima de ese máximo.
 - En cuentas de crédito los depósitos primero pagan el adeudo y los retiros se toman primero del saldo

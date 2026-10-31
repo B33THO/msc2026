@@ -60,27 +60,6 @@ class AccountRepository:
         return [self._to_client_account(row) for row in rows]
 
     # ---------------------------------------------------------------------------------
-    # CREAR CUENTA NORMAL
-    # ---------------------------------------------------------------------------------
-    def create(self, account):
-
-        with self.__connection.cursor() as cur:
-            self._insert(cur, account)
-
-        return account
-
-    # ---------------------------------------------------------------------------------
-    # CREAR CUENTA CRÉDITO
-    # ---------------------------------------------------------------------------------
-    def create_credit_account(self, credit_account: CreditAccount):
-
-        #Ambos INSERT usan el mismo cursor, si falla uno se hace rollback de los dos
-        with self.__connection.cursor() as cur:
-            self._insert(cur, credit_account)
-
-        return credit_account
-
-    # ---------------------------------------------------------------------------------
     # CREAR CLIENTE Y SU CUENTA (ahorro o crédito)
     # ---------------------------------------------------------------------------------
     def create_with_client(self, client, account):
@@ -190,19 +169,6 @@ class AccountRepository:
         return updated
 
     # ---------------------------------------------------------------------------------
-    # ELIMINAR CUENTA
-    # ---------------------------------------------------------------------------------
-    def delete(self, account_number):
-
-        #Por el ON DELETE CASCADE también se borra su registro en credit_account
-        with self.__connection.cursor() as cur:
-            cur.execute(self.SQL_DELETE_ACCOUNT, (account_number,))
-            deleted = cur.rowcount > 0
-
-        return deleted
-
-
-    # ---------------------------------------------------------------------------------
     # CONSULTAS SQL
     # ---------------------------------------------------------------------------------
     SQL_CREATE_ACCOUNT = """
@@ -238,5 +204,3 @@ class AccountRepository:
             SET credit_limit = %s, debt = %s
             WHERE account_number = %s
         """
-
-    SQL_DELETE_ACCOUNT = "DELETE FROM account WHERE account_number = %s"

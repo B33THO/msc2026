@@ -18,6 +18,7 @@ CREATE TABLE account (
     created_at DATE NOT NULL,
 
     CONSTRAINT chk_positive_c_balance CHECK (balance >= 0),
+    CONSTRAINT uq_client UNIQUE (id_client), -- Cada cliente tiene una sola cuenta
     CONSTRAINT fk_client FOREIGN KEY (id_client) REFERENCES client(id) ON DELETE CASCADE
 
 )AUTO_INCREMENT = 1000;

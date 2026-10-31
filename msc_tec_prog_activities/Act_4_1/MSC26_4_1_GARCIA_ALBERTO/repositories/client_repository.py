@@ -16,14 +16,8 @@ class ClientRepository:
         )
 
     #---------------------------------------------------------------------------------
-    # CREAR CLIENTE
+    # CREAR CLIENTE (solo junto con su cuenta, ver AccountRepository.create_with_client)
     #---------------------------------------------------------------------------------
-
-    def create(self, client):
-        with self.__connection.cursor() as cur: #Se usa el cursor de la conexión
-            self.insert(cur, client)
-
-        return client
 
     @staticmethod
     def insert(cur, client):
@@ -59,42 +53,6 @@ class ClientRepository:
         return self._to_client(row) if row else None
 
     #---------------------------------------------------------------------------------
-    # CONSULTA POR NOMBRE
-    #---------------------------------------------------------------------------------
-
-    def get_by_name(self, name):
-        #Consulta SQL, busca coincidencias parciales en nombre y apellidos
-        sql = """
-            SELECT id, paternal_surname, maternal_surname, name
-            FROM client
-            WHERE CONCAT_WS(' ', name, paternal_surname, maternal_surname) LIKE %s
-            ORDER BY paternal_surname, maternal_surname, name
-        """
-        with self.__connection.cursor(dictionary=True) as cur:
-            cur.execute(sql, (f"%{name}%",)) #El % permite buscar texto contenido
-            rows = cur.fetchall() #Asigna a rows todos los resultados
-
-        #Convierte cada fila a Client, si no hubo resultados regresa una lista vacía
-        return [self._to_client(row) for row in rows]
-
-    #---------------------------------------------------------------------------------
-    # CONSULTAR TODOS
-    #---------------------------------------------------------------------------------
-
-    def get_all(self):
-        #Consulta SQL
-        sql = """
-            SELECT id, paternal_surname, maternal_surname, name
-            FROM client
-            ORDER BY paternal_surname, maternal_surname, name
-        """
-        with self.__connection.cursor(dictionary=True) as cur:
-            cur.execute(sql) #Ejecuta la consulta
-            rows = cur.fetchall() #Asigna a rows todos los resultados
-
-        return [self._to_client(row) for row in rows]
-
-    #---------------------------------------------------------------------------------
     # ACTUALIZAR CLIENTE
     #---------------------------------------------------------------------------------
 
@@ -125,7 +83,7 @@ class ClientRepository:
     #---------------------------------------------------------------------------------
 
     def delete(self, client_id):
-        #Consulta SQL, por el ON DELETE CASCADE también se borran sus cuentas
+        #Consulta SQL, por el ON DELETE CASCADE también se borra su cuenta
         sql = "DELETE FROM client WHERE id = %s"
         with self.__connection.cursor() as cur:
             cur.execute(sql, (client_id,)) #Ejecuta la consulta

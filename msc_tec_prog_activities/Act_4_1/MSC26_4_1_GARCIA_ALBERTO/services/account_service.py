@@ -97,36 +97,12 @@ class AccountService:
 
         return created_at
 
-    def _get_client(self, id_client):
-        client = self.__client_repository.get_by_id(id_client)
-        if not client:
-            raise ValueError('Cliente no encontrado')
-        return client
-
     def _get_account(self, account_number):
         #Regresa solo la cuenta del par (Client, cuenta)
         return self.get_by_account_number(account_number)[1]
 
     #--------------------------------------------------------------------------
-    # CREAR CUENTA DE AHORRO
-    #--------------------------------------------------------------------------
-    def create(self, id_client, balance, created_at):
-
-        client = self._get_client(id_client)
-        account = self._build_account(client.get_id(), balance, created_at)
-        return self.__repository.create(account)
-
-    #--------------------------------------------------------------------------
-    # CREAR CUENTA DE CRÉDITO
-    #--------------------------------------------------------------------------
-    def create_credit_account(self, id_client, balance, created_at, credit_limit, debt = 0):
-
-        client = self._get_client(id_client)
-        credit_account = self._build_account(client.get_id(), balance, created_at, credit_limit, debt)
-        return self.__repository.create_credit_account(credit_account)
-
-    #--------------------------------------------------------------------------
-    # CREAR CLIENTE NUEVO CON SU CUENTA
+    # CREAR CLIENTE NUEVO CON SU CUENTA (cada cliente tiene una sola cuenta)
     #--------------------------------------------------------------------------
     def create_client_with_account(self, paternal_surname, maternal_surname, name,
                                    balance, created_at, credit_limit = None, debt = 0,
@@ -284,6 +260,8 @@ class AccountService:
 
         #get_by_account_number lanza ValueError si la cuenta no existe
         client, account_to_delete = self.get_by_account_number(account_number)
-        self.__repository.delete(account_to_delete.get_account_number())
+        #Como cada cliente tiene una sola cuenta, se elimina el cliente y el ON DELETE CASCADE
+        #borra su cuenta (y su registro en credit_account), así no quedan clientes sin cuenta
+        self.__client_repository.delete(client.get_id())
 
         return account_to_delete
