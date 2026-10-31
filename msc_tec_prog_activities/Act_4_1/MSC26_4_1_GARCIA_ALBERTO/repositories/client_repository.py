@@ -8,6 +8,7 @@ class ClientRepository:
 
     @staticmethod
     def _to_client(row):
+        #Regresa un objeto Client armado con los datos de la fila (diccionario)
         return Client(
             row['id'],
             row['paternal_surname'],
@@ -33,6 +34,7 @@ class ClientRepository:
             client.get_name()
         )) #Ejecuta la consulta
         client.set_id(cur.lastrowid) #Asignamos el id creado al modelo Client
+        #No tiene return (regresa None): el id generado queda guardado en el mismo objeto client
 
     #---------------------------------------------------------------------------------
     # CONSULTA POR ID
@@ -49,7 +51,7 @@ class ClientRepository:
             cur.execute(sql, (client_id,)) #Ejecuta la consulta
             row = cur.fetchone() #Asigna a row un resultado
 
-        #Si hubo resultado, se convierte a Client y se retorna, si no, regresa None
+        #Regresa un objeto Client si existe el id, si no, regresa None
         return self._to_client(row) if row else None
 
     #---------------------------------------------------------------------------------
@@ -60,6 +62,7 @@ class ClientRepository:
         with self.__connection.cursor() as cur:
             updated = self.update_row(cur, client)
 
+        #Regresa un bool: True si se modificó el cliente, False si no hubo cambios o no existe
         return updated
 
     @staticmethod
@@ -76,6 +79,7 @@ class ClientRepository:
             client.get_name(),
             client.get_id()
         )) #Ejecuta la consulta
+        #Regresa un bool: True si el UPDATE afectó alguna fila, False si no
         return cur.rowcount > 0
 
     #---------------------------------------------------------------------------------
@@ -89,6 +93,7 @@ class ClientRepository:
             cur.execute(sql, (client_id,)) #Ejecuta la consulta
             deleted = cur.rowcount > 0 #True si se borró algún registro
 
+        #Regresa un bool: True si se eliminó el cliente, False si no existía
         return deleted
 
 

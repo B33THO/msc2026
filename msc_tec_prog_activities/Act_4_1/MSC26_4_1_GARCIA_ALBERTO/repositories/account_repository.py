@@ -12,6 +12,7 @@ class AccountRepository:
     #Los métodos _to_* convierten una fila (diccionario) en el objeto del dominio
     @staticmethod
     def _to_account(row):
+        #Regresa un objeto Account (cuenta de ahorro) armado con los datos de la fila
         return Account(
             row['account_number'],
             row['id_client'],
@@ -21,6 +22,7 @@ class AccountRepository:
 
     @staticmethod
     def _to_credit_account(row):
+        #Regresa un objeto CreditAccount (cuenta de crédito) con su límite y adeudo
         return CreditAccount(
             row['account_number'],
             row['id_client'],
@@ -32,6 +34,7 @@ class AccountRepository:
 
     @staticmethod
     def _to_client(row):
+        #Regresa un objeto Client con los datos del titular de la cuenta
         return Client(
             row['id_client'],
             row['paternal_surname'],
@@ -47,7 +50,7 @@ class AccountRepository:
         else:
             account = cls._to_account(row)
 
-        #Regresa el par (Client, Account/CreditAccount)
+        #Regresa una tupla (Client, Account) o (Client, CreditAccount) según el tipo de cuenta
         return cls._to_client(row), account
 
     def _fetch_all(self, where = "", params = ()):
@@ -57,6 +60,7 @@ class AccountRepository:
             cur.execute(sql, params)
             rows = cur.fetchall()
 
+        #Regresa una lista de tuplas (Client, Account/CreditAccount); lista vacía si no hay filas
         return [self._to_client_account(row) for row in rows]
 
     # ---------------------------------------------------------------------------------
@@ -71,6 +75,8 @@ class AccountRepository:
             account.set_id_client(client.get_id())
             self._insert(cur, account)
 
+        #Regresa una tupla (Client, Account/CreditAccount) con los objetos ya guardados:
+        #el cliente con su id generado y la cuenta con su número de cuenta asignado
         return client, account
 
     def _insert(self, cur, account):
@@ -98,6 +104,7 @@ class AccountRepository:
     # CONSULTAR TODAS LAS CUENTAS
     # ---------------------------------------------------------------------------------
     def get_all(self):
+        #Regresa una lista de tuplas (Client, Account/CreditAccount) con todas las cuentas
         return self._fetch_all()
 
     # ---------------------------------------------------------------------------------
@@ -106,25 +113,28 @@ class AccountRepository:
     def get_by_account_number(self, account_number):
         results = self._fetch_all("WHERE a.account_number = %s", (account_number,))
 
-        #Si hubo resultado regresa el par (Client, cuenta), si no, regresa None
+        #Regresa una tupla (Client, Account/CreditAccount) si existe la cuenta, si no, regresa None
         return results[0] if results else None
 
     # ---------------------------------------------------------------------------------
     # CONSULTAR SOLO CUENTAS DE AHORRO
     # ---------------------------------------------------------------------------------
     def get_savings_accounts(self):
+        #Regresa una lista de tuplas (Client, Account) solo con cuentas de ahorro
         return self._fetch_all("WHERE ca.account_number IS NULL")
 
     # ---------------------------------------------------------------------------------
     # CONSULTAR SOLO CUENTAS DE CRÉDITO
     # ---------------------------------------------------------------------------------
     def get_credit_accounts(self):
+        #Regresa una lista de tuplas (Client, CreditAccount) solo con cuentas de crédito
         return self._fetch_all("WHERE ca.account_number IS NOT NULL")
 
     # ---------------------------------------------------------------------------------
     # CONSULTAR CUENTAS CON SALDO MENOR O IGUAL A UNA CANTIDAD
     # ---------------------------------------------------------------------------------
     def get_by_max_balance(self, amount):
+        #Regresa una lista de tuplas (Client, Account/CreditAccount) con saldo <= amount
         return self._fetch_all("WHERE a.balance <= %s", (amount,))
 
     # ---------------------------------------------------------------------------------
@@ -135,6 +145,7 @@ class AccountRepository:
         with self.__connection.cursor() as cur:
             updated = self._update(cur, account)
 
+        #Regresa un bool: True si se modificó la cuenta, False si no hubo cambios o no existe
         return updated
 
     # ---------------------------------------------------------------------------------
@@ -147,6 +158,7 @@ class AccountRepository:
             client_updated = ClientRepository.update_row(cur, client)
             account_updated = self._update(cur, account)
 
+        #Regresa un bool: True si cambió el cliente o la cuenta, False si ninguno cambió
         return client_updated or account_updated
 
     def _update(self, cur, account):
@@ -165,7 +177,7 @@ class AccountRepository:
             ))
             updated = updated or cur.rowcount > 0
 
-        #True si cambió alguna de las dos tablas
+        #Regresa un bool: True si cambió alguna de las dos tablas, False si ninguna cambió
         return updated
 
     # ---------------------------------------------------------------------------------

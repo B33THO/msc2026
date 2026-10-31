@@ -103,7 +103,7 @@ class AccountForm(QDialog):
             self.dsb_balance.value(),
             self.de_created_at.date().toPyDate(),
             credit_limit
-        )
+        ) #Aquí no se llama a la base de datos ni se hacen validaciones.
 
         self.saved.emit()
         QMessageBox.information(self, "Cuenta creada", f"Se creó la cuenta {account.get_account_number()}")
@@ -125,7 +125,7 @@ class AccountForm(QDialog):
             credit_limit
         )
 
-        self.saved.emit()
+        self.saved.emit() #Emite la señal
         self.accept() #Cierra el diálogo
 
     #--------------------------------------------------------------------------
