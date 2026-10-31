@@ -6,246 +6,518 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>365</width>
-    <height>613</height>
+    <width>440</width>
+    <height>640</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>420</width>
+    <height>600</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QWidget" name="widget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>50</y>
-     <width>311</width>
-     <height>181</height>
-    </rect>
+  <layout class="QVBoxLayout" name="vl_form">
+   <property name="spacing">
+    <number>0</number>
    </property>
-   <widget class="QLineEdit" name="le_paternal">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>20</y>
-      <width>271</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="placeholderText">
-     <string> Apellido Paterno</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="le_maternal">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>80</y>
-      <width>271</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="placeholderText">
-     <string> Apellido Materno</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="le_name">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>140</y>
-      <width>271</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="placeholderText">
-     <string> Nombre(s)</string>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="groupBox">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>250</y>
-     <width>311</width>
-     <height>80</height>
-    </rect>
+   <property name="leftMargin">
+    <number>0</number>
    </property>
-   <property name="title">
-    <string>Tipo de cuenta</string>
+   <property name="topMargin">
+    <number>0</number>
    </property>
-   <widget class="QRadioButton" name="rb_debit">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>30</y>
-      <width>121</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Débito</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="rb_credit">
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>30</y>
-      <width>111</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Crédito</string>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="groupBox_2">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>340</y>
-     <width>311</width>
-     <height>61</height>
-    </rect>
+   <property name="rightMargin">
+    <number>0</number>
    </property>
-   <property name="title">
-    <string>Saldo inicial</string>
+   <property name="bottomMargin">
+    <number>0</number>
    </property>
-   <widget class="QDoubleSpinBox" name="dsb_balance">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>20</y>
-      <width>191</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="groupBox_3">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>410</y>
-     <width>311</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Límite de crédito</string>
-   </property>
-   <widget class="QDoubleSpinBox" name="dsb_credit_limit">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>20</y>
-      <width>191</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="groupBox_4">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>480</y>
-     <width>311</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Fecha de apertura</string>
-   </property>
-   <widget class="QDateEdit" name="de_created_at">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>20</y>
-      <width>191</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="displayFormat">
-     <string>dd/MM/yyyy</string>
-    </property>
-    <property name="calendarPopup">
-     <bool>true</bool>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QPushButton" name="btn_create">
-   <property name="geometry">
-    <rect>
-     <x>244</x>
-     <y>560</y>
-     <width>81</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Guardar</string>
-   </property>
-   <property name="icon">
-    <iconset>
-     <normaloff>../icons/save_24dp_75FB4C.svg</normaloff>../icons/save_24dp_75FB4C.svg</iconset>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btn_cancel">
-   <property name="geometry">
-    <rect>
-     <x>154</x>
-     <y>560</y>
-     <width>81</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Cancelar</string>
-   </property>
-   <property name="icon">
-    <iconset>
-     <normaloff>../icons/cancel_24dp.svg</normaloff>../icons/cancel_24dp.svg</iconset>
-   </property>
-  </widget>
-  <widget class="QToolButton" name="tbtn_clear_form">
-   <property name="geometry">
-    <rect>
-     <x>300</x>
-     <y>20</y>
-     <width>25</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>...</string>
-   </property>
-   <property name="icon">
-    <iconset>
-     <normaloff>../icons/ink_eraser_24dp.svg</normaloff>../icons/ink_eraser_24dp.svg</iconset>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lb_title">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>20</y>
-     <width>201</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>16</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Titulo</string>
-   </property>
-  </widget>
+   <item>
+    <widget class="QFrame" name="form_header">
+     <layout class="QHBoxLayout" name="hl_form_header">
+      <property name="leftMargin">
+       <number>24</number>
+      </property>
+      <property name="topMargin">
+       <number>18</number>
+      </property>
+      <property name="rightMargin">
+       <number>18</number>
+      </property>
+      <property name="bottomMargin">
+       <number>18</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lb_title">
+        <property name="text">
+         <string>Titulo</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="hs_form_header">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="tbtn_clear_form">
+        <property name="toolTip">
+         <string>Limpiar formulario</string>
+        </property>
+        <property name="text">
+         <string>Limpiar</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../icons/ink_eraser_24dp_FFFFFF.svg</normaloff>../icons/ink_eraser_24dp_FFFFFF.svg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>18</width>
+          <height>18</height>
+         </size>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="form_body" native="true">
+     <layout class="QVBoxLayout" name="vl_form_body">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <property name="leftMargin">
+       <number>22</number>
+      </property>
+      <property name="topMargin">
+       <number>14</number>
+      </property>
+      <property name="rightMargin">
+       <number>22</number>
+      </property>
+      <property name="bottomMargin">
+       <number>20</number>
+      </property>
+      <item>
+       <widget class="QGroupBox" name="widget">
+        <property name="title">
+         <string>Datos del cliente</string>
+        </property>
+        <layout class="QVBoxLayout" name="vl_client">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>14</number>
+         </property>
+         <property name="topMargin">
+          <number>12</number>
+         </property>
+         <property name="rightMargin">
+          <number>14</number>
+         </property>
+         <property name="bottomMargin">
+          <number>14</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="lb_paternal">
+           <property name="text">
+            <string>Apellido paterno</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_paternal">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="placeholderText">
+            <string>Ej. García</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="vs_client_1">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>6</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="lb_maternal">
+           <property name="text">
+            <string>Apellido materno</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_maternal">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="placeholderText">
+            <string>Ej. Rojas</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="vs_client_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>6</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="lb_name">
+           <property name="text">
+            <string>Nombre(s)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_name">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="placeholderText">
+            <string>Ej. Alberto</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>Tipo de cuenta</string>
+        </property>
+        <layout class="QHBoxLayout" name="hl_type">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>14</number>
+         </property>
+         <property name="topMargin">
+          <number>12</number>
+         </property>
+         <property name="rightMargin">
+          <number>14</number>
+         </property>
+         <property name="bottomMargin">
+          <number>14</number>
+         </property>
+         <item>
+          <widget class="QRadioButton" name="rb_debit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="text">
+            <string>Débito / Ahorro</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_credit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="text">
+            <string>Crédito</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="hl_amounts">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <item>
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Saldo inicial</string>
+          </property>
+          <layout class="QVBoxLayout" name="vl_balance">
+           <property name="leftMargin">
+            <number>14</number>
+           </property>
+           <property name="topMargin">
+            <number>12</number>
+           </property>
+           <property name="rightMargin">
+            <number>14</number>
+           </property>
+           <property name="bottomMargin">
+            <number>14</number>
+           </property>
+           <item>
+            <widget class="QDoubleSpinBox" name="dsb_balance">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>34</height>
+              </size>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+             <property name="prefix">
+              <string>$ </string>
+             </property>
+             <property name="groupSeparatorShown">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string>Límite de crédito</string>
+          </property>
+          <layout class="QVBoxLayout" name="vl_credit_limit">
+           <property name="leftMargin">
+            <number>14</number>
+           </property>
+           <property name="topMargin">
+            <number>12</number>
+           </property>
+           <property name="rightMargin">
+            <number>14</number>
+           </property>
+           <property name="bottomMargin">
+            <number>14</number>
+           </property>
+           <item>
+            <widget class="QDoubleSpinBox" name="dsb_credit_limit">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>34</height>
+              </size>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+             <property name="prefix">
+              <string>$ </string>
+             </property>
+             <property name="groupSeparatorShown">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_4">
+        <property name="title">
+         <string>Fecha de apertura</string>
+        </property>
+        <layout class="QVBoxLayout" name="vl_created_at">
+         <property name="leftMargin">
+          <number>14</number>
+         </property>
+         <property name="topMargin">
+          <number>12</number>
+         </property>
+         <property name="rightMargin">
+          <number>14</number>
+         </property>
+         <property name="bottomMargin">
+          <number>14</number>
+         </property>
+         <item>
+          <widget class="QDateEdit" name="de_created_at">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="displayFormat">
+            <string>dd/MM/yyyy</string>
+           </property>
+           <property name="calendarPopup">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <spacer name="vs_form_body">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>4</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="hl_buttons">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <item>
+         <spacer name="hs_buttons">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_cancel">
+          <property name="minimumSize">
+           <size>
+            <width>110</width>
+            <height>38</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="text">
+           <string>Cancelar</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../icons/cancel_24dp_475569.svg</normaloff>../icons/cancel_24dp_475569.svg</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>18</width>
+            <height>18</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_create">
+          <property name="minimumSize">
+           <size>
+            <width>120</width>
+            <height>38</height>
+           </size>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="text">
+           <string>Guardar</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../icons/save_24dp_FFFFFF.svg</normaloff>../icons/save_24dp_FFFFFF.svg</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>18</width>
+            <height>18</height>
+           </size>
+          </property>
+          <property name="default">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
+ <tabstops>
+  <tabstop>le_paternal</tabstop>
+  <tabstop>le_maternal</tabstop>
+  <tabstop>le_name</tabstop>
+  <tabstop>rb_debit</tabstop>
+  <tabstop>rb_credit</tabstop>
+  <tabstop>dsb_balance</tabstop>
+  <tabstop>dsb_credit_limit</tabstop>
+  <tabstop>de_created_at</tabstop>
+  <tabstop>btn_create</tabstop>
+  <tabstop>btn_cancel</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

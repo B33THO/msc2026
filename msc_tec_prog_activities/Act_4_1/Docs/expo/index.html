@@ -147,6 +147,177 @@
                 </div>
             </div>
         </section>
+
+        <section class="section">
+            <header class="section_head">
+                <span class="section_num">04</span>
+                <h2>Modelo de datos</h2>
+            </header>
+            <p class="lead">
+                Como mejora, se <strong>separó al cliente de sus cuentas</strong>: en un banco real una persona
+                puede tener varias cuentas de ahorro y de crédito.
+            </p>
+            <div class="erd">
+                <div class="erd_table">
+                    <p class="erd_name">client</p>
+                    <ul>
+                        <li><span class="key">PK</span>id</li>
+                        <li>paternal_surname</li>
+                        <li>maternal_surname</li>
+                        <li>name</li>
+                    </ul>
+                </div>
+                <div class="erd_link"><span>1 : N</span></div>
+                <div class="erd_table">
+                    <p class="erd_name">account</p>
+                    <ul>
+                        <li><span class="key">PK</span>account_number</li>
+                        <li><span class="key key_fk">FK</span>id_client</li>
+                        <li>balance</li>
+                        <li>created_at</li>
+                    </ul>
+                </div>
+                <div class="erd_link"><span>1 : 0..1</span></div>
+                <div class="erd_table">
+                    <p class="erd_name">credit_account</p>
+                    <ul>
+                        <li><span class="key key_fk">PK FK</span>account_number</li>
+                        <li>credit_limit</li>
+                        <li>debt</li>
+                    </ul>
+                </div>
+            </div>
+            <ul class="notes">
+                <li><strong>Herencia en dos niveles:</strong> en Python <code>CreditAccount</code> hereda de <code>Account</code>; en MySQL la tabla <code>credit_account</code> extiende a <code>account</code> con la misma llave.</li>
+                <li><strong>El número de cuenta ya no se pide:</strong> lo genera <code>AUTO_INCREMENT</code> a partir de 1000, como en un banco real.</li>
+                <li><strong>La base protege los datos:</strong> <code>CHECK (balance &gt;= 0)</code>, <code>CHECK (debt &lt;= credit_limit)</code> y <code>ON DELETE CASCADE</code> para no dejar registros huérfanos.</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <header class="section_head">
+                <span class="section_num">05</span>
+                <h2>Reglas del banco</h2>
+            </header>
+            <p class="lead">Todas viven en <strong>services/account_service.py</strong>; la Vista solo muestra el resultado o el mensaje de error.</p>
+            <ul class="benefits rules">
+                <li>
+                    <h4>Depósito</h4>
+                    <p>El monto debe ser mayor a 0. En una cuenta de crédito con adeudo, el depósito <em>primero paga el crédito</em> y el resto va al saldo.</p>
+                </li>
+                <li>
+                    <h4>Retiro de ahorro</h4>
+                    <p>Solo si el monto es menor o igual al saldo; si no, se muestra un mensaje.</p>
+                </li>
+                <li>
+                    <h4>Retiro de crédito</h4>
+                    <p>Se retira primero del saldo y lo que falte se toma del crédito. Se rechaza si excede saldo + crédito disponible.</p>
+                </li>
+                <li>
+                    <h4>Cambiar límite</h4>
+                    <p>El nuevo monto de crédito no puede quedar por debajo del adeudo actual.</p>
+                </li>
+            </ul>
+
+            <div class="sim">
+                <div class="sim_head">
+                    <div>
+                        <p class="sim_title">Simulador · Cuenta de crédito <span class="mono">1007</span></p>
+                        <p class="sim_owner">ORIA BUENA SUSANA</p>
+                    </div>
+                    <button type="button" class="sim_reset" id="simReset">↺ Reiniciar</button>
+                </div>
+                <div class="sim_stats">
+                    <div><span>Saldo</span><strong id="simBalance"></strong></div>
+                    <div><span>Adeudo</span><strong id="simDebt"></strong></div>
+                    <div><span>Crédito disponible</span><strong id="simAvailable"></strong></div>
+                    <div><span>Límite</span><strong id="simLimit"></strong></div>
+                </div>
+                <div class="sim_bar" aria-hidden="true"><i id="simBarFill"></i></div>
+                <p class="sim_bar_label">Uso del crédito</p>
+                <form class="sim_form" id="simForm">
+                    <label for="simAmount">Monto</label>
+                    <input type="number" id="simAmount" min="0" step="0.01" value="20000" required>
+                    <button type="submit" data-op="deposit">Depositar</button>
+                    <button type="submit" data-op="withdraw">Retirar</button>
+                </form>
+                <p class="sim_msg" id="simMsg">Prueba retirar $20,000: se toman $12,500 del saldo y $7,500 del crédito.</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <header class="section_head">
+                <span class="section_num">06</span>
+                <h2>Funcionalidades</h2>
+            </header>
+            <div class="features">
+                <div class="feature">
+                    <h4>Crear</h4>
+                    <ul>
+                        <li>Cuenta de ahorro</li>
+                        <li>Cuenta de crédito con su monto</li>
+                        <li>Cliente y cuenta en una sola transacción</li>
+                        <li>El formulario se limpia al crear</li>
+                    </ul>
+                </div>
+                <div class="feature">
+                    <h4>Consultar</h4>
+                    <ul>
+                        <li>Todas las cuentas</li>
+                        <li>Por número de cuenta</li>
+                        <li>Solo ahorro / solo crédito</li>
+                        <li>Saldo menor o igual a una cantidad</li>
+                    </ul>
+                </div>
+                <div class="feature">
+                    <h4>Actualizar y eliminar</h4>
+                    <ul>
+                        <li>Apellidos y nombre del cliente</li>
+                        <li>Monto de crédito</li>
+                        <li>Depositar y retirar</li>
+                        <li>Eliminar con confirmación</li>
+                    </ul>
+                </div>
+                <div class="feature">
+                    <h4>Archivos</h4>
+                    <ul>
+                        <li>Exportar la tabla a .csv o .xlsx</li>
+                        <li>Importar desde .csv o .xlsx</li>
+                        <li>Omite cuentas que ya existen</li>
+                        <li>Resumen de importadas y errores</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <header class="section_head">
+                <span class="section_num">07</span>
+                <h2>Decisiones técnicas</h2>
+            </header>
+            <ul class="decisions">
+                <li>
+                    <span class="decision_key">Decimal</span>
+                    <p>Todas las cantidades se manejan con <code>Decimal</code>, no con <code>float</code>, para que $0.10 + $0.20 sea exactamente $0.30.</p>
+                </li>
+                <li>
+                    <span class="decision_key">Transacciones</span>
+                    <p>Crear un cliente con su cuenta o editar ambos va en una sola transacción: si falla una parte, se hace <em>rollback</em> de todo.</p>
+                </li>
+                <li>
+                    <span class="decision_key">Validar primero</span>
+                    <p>Los servicios construyen y validan los objetos antes de tocar la base de datos; los errores llegan a la Vista como mensajes claros.</p>
+                </li>
+                <li>
+                    <span class="decision_key">.env</span>
+                    <p>Las credenciales de MySQL se leen de un archivo <code>.env</code> con <code>python-dotenv</code>; no están escritas en el código.</p>
+                </li>
+                <li>
+                    <span class="decision_key">Importación segura</span>
+                    <p>Al importar se conserva el número de cuenta del archivo, así un archivo exportado se puede volver a cargar sin duplicar cuentas. Acepta fechas de texto y de Excel.</p>
+                </li>
+            </ul>
+        </section>
     </main>
 
     <footer class="expo_footer wrap">
@@ -157,19 +328,21 @@
         (function () {
             // Cada paso: estación destino, texto del paquete, si va de regreso y explicación.
             const steps = [
-                { at: 0, label: "depositar(1001, 500)", back: false,
-                  text: "ui: el usuario llena el formulario y presiona «Depositar». La Vista solo recoge los datos." },
-                { at: 1, label: "depositar(1001, 500)", back: false,
-                  text: "services: valida la regla de negocio — el monto debe ser mayor a 0." },
-                { at: 2, label: "actualizar_saldo(1001, +500)", back: false,
-                  text: "repositories: arma la consulta SQL; es el único lugar con SQL." },
-                { at: 3, label: "UPDATE Cuenta SET saldo = saldo + 500", back: false,
-                  text: "db: MySQL ejecuta la consulta usando la conexión de Connection.py." },
-                { at: 2, label: "fila → Cuenta(1001, $1,500)", back: true,
-                  text: "repositories: convierte la fila de la tabla en un objeto Cuenta de domain." },
-                { at: 1, label: "Cuenta(1001, $1,500)", back: true,
-                  text: "services: confirma que la operación fue válida y devuelve el objeto." },
-                { at: 0, label: "Saldo: $1,500 ✓", back: true,
+                { at: 0, label: "deposit(1001, 500)", back: false,
+                  text: "ui: el usuario selecciona la cuenta y presiona «Depositar». La Vista solo recoge los datos." },
+                { at: 1, label: "deposit(1001, 500)", back: false,
+                  text: "services: valida la regla de negocio — el monto debe ser mayor a 0 — y pide la cuenta." },
+                { at: 2, label: "get_by_account_number(1001)", back: false,
+                  text: "repositories: arma la consulta SELECT; es el único lugar con SQL." },
+                { at: 3, label: "SELECT … WHERE account_number = 1001", back: false,
+                  text: "db: MySQL ejecuta la consulta usando la conexión de connection.py." },
+                { at: 2, label: "fila → Account(1001, $850.50)", back: true,
+                  text: "repositories: convierte la fila de la tabla en un objeto Account de domain." },
+                { at: 1, label: "saldo = 850.50 + 500", back: false,
+                  text: "services: calcula el nuevo saldo con Decimal y llama a repository.update(account)." },
+                { at: 3, label: "UPDATE account SET balance = 1350.50", back: false,
+                  text: "db: MySQL guarda el nuevo saldo." },
+                { at: 0, label: "Saldo: $1,350.50 ✓", back: true,
                   text: "ui: muestra el nuevo saldo en la tabla. La Vista nunca tocó la base de datos." }
             ];
 
@@ -222,6 +395,70 @@
                 if (active) placePacket(Number(active.dataset.station));
             });
             placePacket(0);
+        })();
+
+        (function () {
+            // Misma lógica que AccountService.deposit / withdraw, trabajando en centavos.
+            const initial = { balance: 1250000, debt: 1200000, limit: 5000000 };
+            let acc = { ...initial };
+
+            const form = document.getElementById("simForm");
+            const amountInput = document.getElementById("simAmount");
+            const msg = document.getElementById("simMsg");
+            const fmt = c => "$" + (c / 100).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            function render() {
+                document.getElementById("simBalance").textContent = fmt(acc.balance);
+                document.getElementById("simDebt").textContent = fmt(acc.debt);
+                document.getElementById("simAvailable").textContent = fmt(acc.limit - acc.debt);
+                document.getElementById("simLimit").textContent = fmt(acc.limit);
+                document.getElementById("simBarFill").style.width = (acc.debt / acc.limit * 100) + "%";
+            }
+
+            function say(text, isError) {
+                msg.textContent = text;
+                msg.classList.toggle("is_error", isError);
+            }
+
+            function deposit(amount) {
+                const payment = Math.min(acc.debt, amount);
+                acc.debt -= payment;
+                acc.balance += amount - payment;
+                say(payment > 0
+                    ? `Se pagaron ${fmt(payment)} del adeudo y ${fmt(amount - payment)} fueron al saldo.`
+                    : `Sin adeudo: los ${fmt(amount)} van completos al saldo.`, false);
+            }
+
+            function withdraw(amount) {
+                const available = acc.limit - acc.debt;
+                if (amount > acc.balance + available) {
+                    say("El monto a retirar excede el saldo más el crédito disponible.", true);
+                    return;
+                }
+                const fromBalance = Math.min(acc.balance, amount);
+                acc.balance -= fromBalance;
+                acc.debt += amount - fromBalance;
+                say(`Se tomaron ${fmt(fromBalance)} del saldo y ${fmt(amount - fromBalance)} del crédito.`, false);
+            }
+
+            form.addEventListener("submit", e => {
+                e.preventDefault();
+                const amount = Math.round(Number(amountInput.value) * 100);
+                if (!(amount > 0)) {
+                    say("El monto debe ser mayor a 0.", true);
+                    return;
+                }
+                (e.submitter && e.submitter.dataset.op === "deposit" ? deposit : withdraw)(amount);
+                render();
+            });
+
+            document.getElementById("simReset").addEventListener("click", () => {
+                acc = { ...initial };
+                say("Cuenta reiniciada a sus valores del script.sql.", false);
+                render();
+            });
+
+            render();
         })();
     </script>
 </body>

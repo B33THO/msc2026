@@ -3,9 +3,9 @@ from pathlib import Path
 
 from PyQt6 import uic
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QStandardItem, QStandardItemModel
-from PyQt6.QtWidgets import (QAbstractItemView, QFileDialog, QHeaderView, QInputDialog, QMainWindow, QMenu,
-                             QMessageBox)
+from PyQt6.QtGui import QColor, QIcon, QStandardItem, QStandardItemModel
+from PyQt6.QtWidgets import (QAbstractItemView, QFileDialog, QHeaderView, QInputDialog, QLineEdit, QMainWindow,
+                             QMenu, QMessageBox)
 
 from domain.credit_account import CreditAccount
 from services.account_service import AccountExistsError, AccountService, MAX_AMOUNT
@@ -46,6 +46,9 @@ table_headers = [
 FILTER_ALL = "Todas las cuentas"
 FILTER_SAVINGS = "Cuentas de ahorro"
 FILTER_CREDIT = "Cuentas de crédito"
+#Colores de las columnas de crédito (mismos tonos que styles.qss)
+COLOR_DEBT = "#DC2626"
+COLOR_AVAILABLE = "#059669"
 
 
 class MainWindow(QMainWindow):
@@ -66,6 +69,8 @@ class MainWindow(QMainWindow):
         self.model = QStandardItemModel()
         self.model.setHorizontalHeaderLabels(table_headers)
         self.tv_clients_table.setModel(self.model)
+        #Las columnas se ajustan a su contenido (encabezado incluido) y el nombre ocupa el espacio restante
+        self.tv_clients_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.tv_clients_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         #Tabla de solo lectura y se selecciona la fila completa
         self.tv_clients_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -76,9 +81,11 @@ class MainWindow(QMainWindow):
 
     def config_controls(self):
         self.comboBox.addItems([FILTER_ALL, FILTER_SAVINGS, FILTER_CREDIT])
-        self.le_search.setPlaceholderText(" Buscar por número de cuenta (Enter)")
+        self.le_search.setPlaceholderText("Buscar por número de cuenta y presiona Enter")
         self.le_search.setClearButtonEnabled(True)
-        self.lineEdit.setPlaceholderText(" Cantidad")
+        #Lupa decorativa dentro del campo de búsqueda (icons: se registra en main.py)
+        self.le_search.addAction(QIcon("icons:search_24dp_94A3B8.svg"), QLineEdit.ActionPosition.LeadingPosition)
+        self.lineEdit.setPlaceholderText("$ Cantidad")
 
     def connect_signals(self):
         self.btn_create_account.clicked.connect(self.open_create_form)
@@ -129,6 +136,13 @@ class MainWindow(QMainWindow):
             #La fecha y los números se alinean a la derecha
             for item in items[2:]:
                 item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            #El número de cuenta en negritas y el crédito utilizado / disponible en rojo / verde
+            font = items[0].font()
+            font.setBold(True)
+            items[0].setFont(font)
+            if isinstance(account, CreditAccount):
+                items[5].setForeground(QColor(COLOR_DEBT))
+                items[6].setForeground(QColor(COLOR_AVAILABLE))
             self.model.appendRow(items)
 
         self.statusbar.showMessage(f"{len(client_accounts)} cuenta(s)")

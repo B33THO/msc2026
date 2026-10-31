@@ -38,8 +38,8 @@ class AccountForm(QDialog):
         #Inicia como cuenta de ahorro, con el límite de crédito deshabilitado
         self.rb_debit.setChecked(True)
         self.groupBox_3.setEnabled(False)
-        self.lb_title.setText("Crear cuenta")
-        self.setWindowTitle("Crear cuenta")
+        self.lb_title.setText("Nueva cuenta")
+        self.setWindowTitle("Nueva cuenta")
 
     def connect_signals(self):
         #El límite de crédito solo se captura en cuentas de crédito
