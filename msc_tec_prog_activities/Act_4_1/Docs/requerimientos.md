@@ -68,10 +68,7 @@ _xlsx en lugar del antiguo xls, se dio la indicación que puede ser xslx o solo 
 ## Refactor
 _Según indicaciones, se puede mejorar la actividad con deciciones propias_
 1. Separar los datos de usuario de los datos de la cuenta
-2. En la realidad un usuario puede tener tantas cuentas como quiera 
-- Puede tener 1 o varias cuentas normales
-- Puede tener 1 o varias cuentas de crédito
-3. El número de cuenta ya no se pide al usuario como se haría en una situación real
+2. El número de cuenta ya no se pide al usuario como se haría en una situación real
 ```javascript
     usuario {
         id,
