@@ -21,34 +21,34 @@
 ### Eliminar cuenta
 
 ### Actualizar
-- [ ] Apellido paterno
-- [ ] Apellido materno
-- [ ] Nombre
-- [ ] Monto de crédito de las cuentas de crédito
+- [x] Apellido paterno
+- [x] Apellido materno
+- [x] Nombre
+- [x] Monto de crédito de las cuentas de crédito
     _si la modificacion deja el monto de crédito menor al adeudo, rechazar_
-- [ ] Pagar credito. Si hay adeudo, los depositos pagan el crédito
+- [x] Pagar credito. Si hay adeudo, los depositos pagan el crédito
 
 ### Consultar
-- [ ] Todas las cuentas
-- [ ] Por número de cuenta
-- [ ] Solo cuentas de ahorro
-- [ ] Solo cuentas de crédito
-- [ ] Cuentas con saldo menor o igual a una cantidad
+- [x] Todas las cuentas
+- [x] Por número de cuenta
+- [x] Solo cuentas de ahorro
+- [x] Solo cuentas de crédito
+- [x] Cuentas con saldo menor o igual a una cantidad
 
 ## Interfaz Gráfica
-- [ ] Incrementar saldo a alguna cuenta
-- [ ] Retirar de alguna cuenta    
+- [x] Incrementar saldo a alguna cuenta
+- [x] Retirar de alguna cuenta    
     
     _La cantidad debe ser menor o igual al saldo de la cuenta, si no, enviar mensaje_
 
-- [ ] Cuenta de credito
+- [x] Cuenta de credito
     _Retirar primero del saldo y luego del límite de crédito_
     _Si el monto a retirar excede la suma del saldo y crédito, enviar mensaje_
 
-- [ ] Limpiar los controles que agregan nuevas cuentas despues de crearla 
-- [ ] Botón para limpiar campos
-- [ ] Cargar datos desde archivos csv o xlsx a la tabla
-- [ ] Guardar datos a archivos csv o xlsx 
+- [x] Limpiar los controles que agregan nuevas cuentas despues de crearla 
+- [x] Botón para limpiar campos
+- [x] Cargar datos desde archivos csv o xlsx a la tabla
+- [x] Guardar datos a archivos csv o xlsx 
 
 _xlsx en lugar del antiguo xls, se dio la indicación que puede ser xslx o solo csv_
 
