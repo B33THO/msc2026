@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Sandbox — Procedimientos Almacenados y Transacciones</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/theory.css">
+<link rel="stylesheet" href="css/portada.css">
+</head>
+<body>
+
+<!-- ── Portada: primera pantalla, se retira al entrar ─────────────── -->
+<div class="portada" id="portada">
+  <div class="portada__hoja">
+
+    <div class="portada__logos">
+      <div class="portada__placa">
+        <img class="portada__logo portada__logo--tecnm" src="img/logo-tecnm.png"
+             alt="Tecnol&oacute;gico Nacional de M&eacute;xico">
+      </div>
+      <div class="portada__placa">
+        <img class="portada__logo portada__logo--itesz" src="img/logo-itesz.png"
+             alt="Instituto Tecnol&oacute;gico de Estudios Superiores de Zamora">
+      </div>
+    </div>
+
+    <div class="portada__institucion">
+      <p class="portada__sistema">Tecnol&oacute;gico Nacional de M&eacute;xico</p>
+      <h1 class="portada__escuela">Instituto Tecnol&oacute;gico de Estudios Superiores de Zamora</h1>
+      <p class="portada__programa">Maestr&iacute;a en Sistemas Computacionales</p>
+    </div>
+
+    <div class="portada__datos">
+      <div>
+        <p class="portada__campo">Materia</p>
+        <p class="portada__materia">Bases de Datos</p>
+      </div>
+      <div>
+        <p class="portada__campo">Tema</p>
+        <h2 class="portada__tema">Procedimientos Almacenados y Transacciones</h2>
+      </div>
+    </div>
+
+    <div class="portada__pie">
+      <button class="btn btn--primario portada__entrar" id="btn-entrar">Entrar al simulador</button>
+      <p class="portada__nota">Pulsa <kbd>Enter</kbd> o haz clic en cualquier parte para comenzar</p>
+    </div>
+
+  </div>
+</div>
+
+<header class="cabecera">
+  <div class="cabecera__marca">
+    <span class="cabecera__logo">&#9679;</span>
+    <button class="cabecera__titulo" id="btn-portada" type="button" title="Volver a la portada">SQL Sandbox</button>
+    <span class="cabecera__sub">Procedimientos Almacenados y Transacciones &mdash; MySQL</span>
+  </div>
+  <nav class="pasos" id="pasos" aria-label="Progreso de niveles"></nav>
+  <div class="cabecera__acciones">
+    <button class="btn btn--secundario" id="btn-teoria" title="Teor&iacute;a de este nivel (T)">
+      Teor&iacute;a
+    </button>
+    <button class="btn btn--fantasma" id="btn-ayuda" title="Ayuda y atajos">?</button>
+  </div>
+</header>
+
+<main class="tablero">
+
+  <!-- ── Columna 1: caja de herramientas ─────────────────────────── -->
+  <section class="panel panel--toolbox">
+    <h2 class="panel__titulo">Bloques SQL</h2>
+    <p class="panel__ayuda">Arrastra los bloques al editor, o haz clic para insertarlos.</p>
+    <div class="toolbox" id="toolbox"></div>
+  </section>
+
+  <!-- ── Columna 2: editor de script ─────────────────────────────── -->
+  <section class="panel panel--editor">
+    <h2 class="panel__titulo">
+      Editor de script
+      <span class="panel__etiqueta">zona de arrastre</span>
+      <span class="panel__herramientas">
+        <button class="icono" id="btn-limpiar" title="Vaciar el editor">&#128465;</button>
+      </span>
+    </h2>
+    <div class="editor" id="editor">
+      <ol class="editor__lineas" id="editor-lineas"></ol>
+      <div class="editor__vacio" id="editor-vacio">
+        Suelta aquí tus bloques para construir el script.
+      </div>
+    </div>
+    <div class="editor__barra">
+      <button class="btn btn--secundario" id="btn-verificar" title="Revisar la sintaxis sin ejecutar">Verificar</button>
+      <button class="btn btn--fantasma" id="btn-reiniciar" title="Restaurar los datos originales">Reiniciar BD</button>
+      <button class="btn btn--primario" id="btn-ejecutar">Ejecutar</button>
+    </div>
+    <div class="reproduccion">
+      <label class="reproduccion__grupo">
+        Velocidad
+        <select id="sel-velocidad">
+          <option value="1" selected>1x</option>
+          <option value="2">2x</option>
+          <option value="0">Instant.</option>
+        </select>
+      </label>
+      <label class="reproduccion__grupo reproduccion__check">
+        <input type="checkbox" id="chk-paso"> Paso a paso
+      </label>
+      <button class="btn btn--mini" id="btn-paso" disabled>Paso &rsaquo;</button>
+    </div>
+  </section>
+
+  <!-- ── Columna 3: estado de la base de datos ───────────────────── -->
+  <section class="panel panel--estado">
+    <h2 class="panel__titulo">
+      Base de datos
+      <span class="insignia insignia--tx oculto" id="insignia-tx">TRANSACCI&Oacute;N ABIERTA</span>
+    </h2>
+    <div class="tablas" id="tablas"></div>
+  </section>
+
+  <!-- ── Columna 4: consola ──────────────────────────────────────── -->
+  <section class="panel panel--consola">
+    <h2 class="panel__titulo">
+      Consola
+      <span class="led" id="led-consola"></span>
+    </h2>
+    <div class="consola" id="consola"></div>
+  </section>
+
+</main>
+
+<!-- ── Barra inferior: narrativa y reto del nivel ─────────────────── -->
+<footer class="reto" id="reto">
+
+  <!-- Desplegable: se desliza hacia arriba desde detras de la barra y
+       muestra el enunciado completo en grande, para leerlo de lejos. -->
+  <div class="reto__panel" id="reto-panel">
+    <p class="reto__panel-sub">Objetivo de este nivel</p>
+    <p class="reto__objetivo" id="reto-objetivo"></p>
+  </div>
+
+  <div class="reto__barra">
+    <!-- Toda la franja de texto es el disparador. Ojo: dentro de un <button>
+         solo cabe contenido de frase, por eso el titulo es un <span>. -->
+    <button class="reto__toggle" id="btn-reto" aria-expanded="false" aria-controls="reto-panel"
+            title="Ver el objetivo completo (Esc para cerrar)">
+      <span class="reto__chevron" aria-hidden="true">&#9650;</span>
+      <span class="reto__texto">
+        <span class="reto__titulo" id="reto-titulo">Cargando&hellip;</span>
+        <span class="reto__desc" id="reto-desc"></span>
+      </span>
+    </button>
+    <div class="reto__acciones">
+      <button class="btn btn--fantasma" id="btn-pista">Pista</button>
+      <button class="btn btn--secundario" id="btn-anterior">&lsaquo; Anterior</button>
+      <button class="btn btn--primario" id="btn-siguiente">Siguiente &rsaquo;</button>
+    </div>
+  </div>
+</footer>
+
+<!-- ── Pantalla de teoría ─────────────────────────────────────────── -->
+<div class="teoria oculto" id="teoria">
+  <article class="teoria__caja" id="teoria-caja"></article>
+</div>
+
+<!-- ── Modal de ayuda ─────────────────────────────────────────────── -->
+<div class="modal oculto" id="modal-ayuda">
+  <div class="modal__caja">
+    <h3>C&oacute;mo usar el simulador</h3>
+    <ul>
+      <li>Arrastra bloques desde la izquierda al editor central, o haz clic en ellos.</li>
+      <li>Los <span class="hueco hueco--demo">huecos</span> de cada bloque se rellenan con un clic.</li>
+      <li><strong>Verificar sintaxis</strong> revisa el script sin ejecutarlo.</li>
+      <li><strong>Ejecutar script</strong> lo corre y anima los cambios en las tablas.</li>
+    </ul>
+    <h4>Atajos</h4>
+    <ul class="atajos">
+      <li><kbd>T</kbd> Teor&iacute;a de este nivel</li>
+      <li><kbd>Espacio</kbd> Ejecutar</li>
+      <li><kbd>&rarr;</kbd> Siguiente nivel</li>
+      <li><kbd>&larr;</kbd> Nivel anterior</li>
+      <li><kbd>R</kbd> Reiniciar la base de datos</li>
+      <li><kbd>Esc</kbd> Cerrar esta ventana</li>
+    </ul>
+    <button class="btn btn--primario" id="btn-cerrar-ayuda">Entendido</button>
+  </div>
+</div>
+
+<!-- Motor: sin módulos ES, para que funcione abriendo el archivo directamente -->
+<script src="js/data/schema.js"></script>
+<script src="js/engine/database.js"></script>
+<script src="js/engine/lexer.js"></script>
+<script src="js/engine/parser.js"></script>
+<script src="js/engine/interpreter.js"></script>
+<!-- Datos de la interfaz -->
+<script src="js/data/blocks.js"></script>
+<script src="js/data/levels.js"></script>
+<script src="js/data/theory.js"></script>
+<!-- Interfaz -->
+<script src="js/ui/console.js"></script>
+<script src="js/ui/tables.js"></script>
+<script src="js/ui/editor.js"></script>
+<script src="js/ui/dragdrop.js"></script>
+<script src="js/ui/theory.js"></script>
+<script src="js/ui/levels.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

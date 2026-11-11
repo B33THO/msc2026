@@ -1,0 +1,172 @@
+/* ============================================================
+   base.css — variables de color, reset y tipografía
+   Tema oscuro, pensado para proyector (contraste alto).
+   ============================================================ */
+
+:root {
+  /* Superficies */
+  --fondo:            #0b1120;
+  --fondo-panel:      #111a2e;
+  --fondo-panel-alt:  #0e1626;
+  --fondo-elevado:    #172136;
+  --borde:            #22304d;
+  --borde-suave:      #1a2540;
+
+  /* Texto */
+  --texto:            #dbe4f3;
+  --texto-tenue:      #8296b8;
+  --texto-apagado:    #5b6d8c;
+
+  /* Acentos semánticos */
+  --verde:            #3ddc97;
+  --verde-oscuro:     #1d8f63;
+  --verde-fondo:      rgba(61, 220, 151, 0.14);
+  --ambar:            #f5b74f;
+  --ambar-fondo:      rgba(245, 183, 79, 0.16);
+  --rojo:             #ff6b6b;
+  --rojo-fondo:       rgba(255, 107, 107, 0.16);
+  --azul:             #4cc9f0;
+  --azul-fondo:       rgba(76, 201, 240, 0.14);
+  --morado:           #b98cf5;
+  --morado-fondo:     rgba(185, 140, 245, 0.16);
+
+  /* Halos de resaltado (hover en los diagramas de teoría).
+     Mas alfa que los --*-fondo: tienen que notarse en proyector. */
+  --verde-halo:       rgba(61, 220, 151, 0.38);
+  --ambar-halo:       rgba(245, 183, 79, 0.38);
+  --rojo-halo:        rgba(255, 107, 107, 0.38);
+  --azul-halo:        rgba(76, 201, 240, 0.38);
+  --morado-halo:      rgba(185, 140, 245, 0.38);
+  --apagado-halo:     rgba(91, 109, 140, 0.34);
+
+  /* Colores por categoría de bloque */
+  --cat-tx:           var(--verde);
+  --cat-peligro:      var(--rojo);
+  --cat-estructura:   var(--morado);
+  --cat-dml:          var(--azul);
+  --cat-control:      var(--ambar);
+
+  /* Medidas */
+  --radio:            8px;
+  --radio-chico:      5px;
+  --sombra:           0 6px 20px rgba(0, 0, 0, 0.42);
+  --alto-cabecera:    58px;
+  --alto-reto:        96px;
+
+  /* Tipografía */
+  --fuente: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "Cascadia Code", "Consolas", "SF Mono", "Menlo", monospace;
+
+  /* ── Escala tipografica ────────────────────────────────────
+     UN SOLO MANDO: subir o bajar --escala reescala TODO el texto
+     de la aplicacion de forma proporcional. 1 = tamano original.
+     Esta en 1.15 porque el destino es un proyector de salon.
+     Ningun otro archivo debe declarar font-size en px directos. */
+  --escala: 1.15;
+
+  /* Segundo mando, solo para la teoria: se abre a pantalla completa y se lee
+     desde el fondo del salon, asi que su texto va un escalon por encima del
+     resto de la aplicacion. Multiplica sobre --escala, no la sustituye. */
+  --escala-teoria: 1.2;
+
+  /* Tercer mando, solo para la portada: ocupa la pantalla entera y no
+     compite con ningun panel, asi que su texto es el mas grande de todos.
+     Tambien manda sobre el tamano de los logos (ver portada.css). */
+  --escala-portada: 1.5;
+
+  --fs-1: calc( 9.5px * var(--escala));   /* insignias */
+  --fs-2: calc(10.5px * var(--escala));   /* etiquetas de grupo, subtitulos */
+  --fs-3: calc(11.5px * var(--escala));   /* monoespaciado menor: tablas, consola */
+  --fs-4: calc(12.5px * var(--escala));   /* botones, texto secundario */
+  --fs-5: calc(13.5px * var(--escala));   /* editor, listas */
+  --fs-6: calc(14.5px * var(--escala));   /* cuerpo y prosa */
+  --fs-7: calc(  16px * var(--escala));   /* titulos de seccion */
+  --fs-8: calc(  18px * var(--escala));   /* numero de nivel */
+  --fs-9: calc(  22px * var(--escala));   /* titulo de la teoria */
+
+  /* Ritmo de animación (lo ajusta el control de velocidad en JS) */
+  --ritmo: 400ms;
+}
+
+/* La escala de la teoria hay que aplicarla REDECLARANDO los --fs-*, no basta
+   con poner otro --escala dentro de .teoria: un var() se resuelve en el
+   elemento donde se DECLARA la propiedad, no donde se usa. Como los --fs-*
+   estan declarados arriba en :root, ya llegan a .teoria con el 1.15 metido.
+   Se quedan aqui, en el archivo de tokens, para no repartir los px por otros
+   archivos (ver la nota de la escala tipografica). El unico mando sigue
+   siendo --escala-teoria. */
+.teoria {
+  --fs-1: calc( 9.5px * var(--escala) * var(--escala-teoria));
+  --fs-2: calc(10.5px * var(--escala) * var(--escala-teoria));
+  --fs-3: calc(11.5px * var(--escala) * var(--escala-teoria));
+  --fs-4: calc(12.5px * var(--escala) * var(--escala-teoria));
+  --fs-5: calc(13.5px * var(--escala) * var(--escala-teoria));
+  --fs-6: calc(14.5px * var(--escala) * var(--escala-teoria));
+  --fs-7: calc(  16px * var(--escala) * var(--escala-teoria));
+  --fs-8: calc(  18px * var(--escala) * var(--escala-teoria));
+  --fs-9: calc(  22px * var(--escala) * var(--escala-teoria));
+}
+
+/* Mismo motivo que el bloque de .teoria: los --fs-* se resuelven donde se
+   DECLARAN, asi que la portada tiene que redeclararlos para reescalarse. */
+.portada {
+  --fs-1: calc( 9.5px * var(--escala) * var(--escala-portada));
+  --fs-2: calc(10.5px * var(--escala) * var(--escala-portada));
+  --fs-3: calc(11.5px * var(--escala) * var(--escala-portada));
+  --fs-4: calc(12.5px * var(--escala) * var(--escala-portada));
+  --fs-5: calc(13.5px * var(--escala) * var(--escala-portada));
+  --fs-6: calc(14.5px * var(--escala) * var(--escala-portada));
+  --fs-7: calc(  16px * var(--escala) * var(--escala-portada));
+  --fs-8: calc(  18px * var(--escala) * var(--escala-portada));
+  --fs-9: calc(  22px * var(--escala) * var(--escala-portada));
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--fuente);
+  font-size: var(--fs-5);
+  line-height: 1.45;
+  overflow: hidden; /* el scroll vive dentro de cada panel */
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+
+button { font-family: inherit; font-size: inherit; }
+
+kbd {
+  background: var(--fondo-elevado);
+  border: 1px solid var(--borde);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: var(--mono);
+  font-size: var(--fs-2);
+  color: var(--texto);
+}
+
+.oculto { display: none !important; }
+
+/* Barras de desplazamiento discretas */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--borde);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover { background: #2f4269; }
+
+/* Quien prefiera menos movimiento, que lo tenga */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

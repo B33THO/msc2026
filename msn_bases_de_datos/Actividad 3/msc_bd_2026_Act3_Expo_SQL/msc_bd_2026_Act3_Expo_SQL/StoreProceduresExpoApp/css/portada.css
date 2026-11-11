@@ -1,0 +1,201 @@
+/* ============================================================
+   portada.css — pantalla de inicio a página completa
+
+   Tapa la aplicación entera al abrir (z-index 300, por encima de
+   la teoría que va en 200) y se retira al entrar al simulador.
+
+   Los dos logos son de tinta oscura sobre fondo claro, así que
+   sobre el tema oscuro van montados en una placa blanca: es su
+   presentación correcta y además los separa del fondo. El logo
+   del ITESZ es de 212 px de ancho, de modo que su altura se
+   mantiene contenida para que no se vea pixelado en proyector.
+   ============================================================ */
+
+.portada {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 5vw;
+  overflow-y: auto;
+
+  background:
+    radial-gradient(120% 90% at 50% 0%, #16223c 0%, rgba(11, 17, 32, 0) 62%),
+    radial-gradient(90% 70% at 50% 108%, rgba(76, 201, 240, 0.12) 0%, rgba(11, 17, 32, 0) 60%),
+    var(--fondo);
+
+  animation: portada-entra 520ms ease-out both;
+}
+
+/* Salida: la clase la pone app.js y luego oculta el nodo */
+.portada--saliendo {
+  animation: portada-sale 420ms ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes portada-entra {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes portada-sale {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.04); }
+}
+
+/* ── La hoja ─────────────────────────────────────────────── */
+
+.portada__hoja {
+  width: 100%;
+  max-width: 62rem;
+  margin: auto;                 /* centra aunque haya scroll */
+  display: flex;
+  flex-direction: column;
+  gap: 3.2vh;
+  text-align: center;
+  animation: portada-sube 620ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes portada-sube {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Logos ───────────────────────────────────────────────── */
+
+.portada__logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.5rem, 5vw, 4rem);
+  flex-wrap: wrap;
+}
+
+.portada__placa {
+  background: #fff;
+  border-radius: var(--radio);
+  padding: 0.9rem 1.4rem;
+  box-shadow: var(--sombra);
+  display: flex;
+  align-items: center;
+}
+
+.portada__logo {
+  display: block;
+  width: auto;
+  height: calc(var(--fs-9) * 2.6);
+}
+
+/* El del ITESZ es casi cuadrado: a igual altura pesa menos, así que
+   se le da un punto más para que los dos se vean equivalentes. */
+.portada__logo--itesz { height: calc(var(--fs-9) * 3); }
+
+/* ── Institución ─────────────────────────────────────────── */
+
+.portada__institucion { display: grid; gap: 0.35rem; }
+
+.portada__sistema {
+  margin: 0;
+  font-size: var(--fs-4);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--texto-tenue);
+}
+
+.portada__escuela {
+  font-size: var(--fs-7);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--texto);
+}
+
+.portada__programa {
+  margin: 0;
+  font-size: var(--fs-5);
+  color: var(--texto-tenue);
+}
+
+/* ── Bloque de materia y tema ────────────────────────────── */
+
+/* Caja clara con barra de acento a la izquierda, como en la portada
+   en papel: es lo que ancla la vista cuando esto está proyectado. */
+.portada__datos {
+  position: relative;
+  text-align: left;
+  background: rgba(76, 201, 240, 0.07);
+  border: 1px solid var(--borde);
+  border-left: none;
+  border-radius: 0 var(--radio) var(--radio) 0;
+  padding: clamp(1.2rem, 3.5vh, 2.2rem) clamp(1.4rem, 4vw, 3rem);
+  display: grid;
+  gap: 1.4vh;
+}
+
+.portada__datos::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  background: linear-gradient(180deg, var(--azul), var(--morado));
+  border-radius: 3px 0 0 3px;
+}
+
+.portada__campo {
+  margin: 0 0 0.2rem;
+  font-size: var(--fs-2);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--azul);
+}
+
+.portada__materia {
+  margin: 0;
+  font-size: var(--fs-8);
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.portada__tema {
+  font-size: calc(var(--fs-9) * 1.32);
+  line-height: 1.16;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-wrap: balance;
+}
+
+/* ── Pie: entrada al simulador ───────────────────────────── */
+
+.portada__pie { display: grid; gap: 2.2vh; justify-items: center; }
+
+.portada__entrar {
+  font-size: var(--fs-6);
+  padding: 0.7em 2.4em;
+}
+
+.portada__nota {
+  margin: 0;
+  font-size: var(--fs-3);
+  color: var(--texto-apagado);
+}
+
+/* En pantallas bajas (proyector 4:3, portátiles) la portada tiene que
+   caber entera sin scroll. Basta con mover su mando de escala: los
+   --fs-* estan declarados en base.css EN ESTE MISMO selector y se
+   resuelven con el valor vigente, asi que logos y texto bajan juntos
+   y las proporciones se mantienen. */
+@media (max-height: 820px) {
+  .portada { --escala-portada: 1.25; }
+  .portada__hoja { gap: 2.2vh; }
+}
+
+@media (max-height: 640px) {
+  .portada { --escala-portada: 1.05; }
+  .portada__hoja { gap: 1.6vh; }
+  .portada__placa { padding: 0.6rem 1rem; }
+}

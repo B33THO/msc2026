@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exposición Final — Bases de Datos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- Fondo animado: rejilla + tokens SQL flotando -->
+<canvas id="fondo" aria-hidden="true"></canvas>
+<div class="resplandor resplandor--azul" aria-hidden="true"></div>
+<div class="resplandor resplandor--naranja" aria-hidden="true"></div>
+
+<main class="deck" id="deck">
+
+  <!-- ════════════════ 1. PORTADA ════════════════ -->
+  <section class="slide slide--portada" data-titulo="Portada">
+    <div class="portada">
+
+      <div class="portada__logos anim" style="--d:0">
+        <div class="placa"><img src="img/logo-tecnm.png" alt="Tecnológico Nacional de México" class="placa__img placa__img--tecnm"></div>
+        <div class="placa"><img src="img/logo-itesz.png" alt="Instituto Tecnológico de Estudios Superiores de Zamora" class="placa__img placa__img--itesz"></div>
+      </div>
+
+      <div class="portada__institucion">
+        <p class="sobretitulo anim" style="--d:1">Tecnológico Nacional de México</p>
+        <p class="institucion anim" style="--d:2">Instituto Tecnológico de Estudios Superiores de Zamora</p>
+        <p class="programa anim" style="--d:3">Maestría en Sistemas Computacionales</p>
+      </div>
+
+      <div class="terminal anim" style="--d:4">
+        <span class="terminal__prompt">mysql&gt;</span>
+        <span class="terminal__texto" data-escribir="USE optica_db;"></span><span class="cursor"></span>
+      </div>
+
+      <h1 class="titulo anim" style="--d:5">
+        Seguridad, Procedimientos<br>
+        y <span class="titulo__acento">Respaldos</span> en MySQL
+      </h1>
+      <p class="subtitulo anim" style="--d:6">Exposición final &middot; Actividades 3, 4 y 5 &middot; Bases de Datos</p>
+
+      <div class="portada__datos anim" style="--d:7">
+        <div class="dato">
+          <span class="dato__etiqueta">Presenta</span>
+          <span class="dato__valor">Alberto García Rojas</span>
+          <span class="dato__extra">No. de control M26010854</span>
+        </div>
+        <div class="dato">
+          <span class="dato__etiqueta">Docente</span>
+          <span class="dato__valor">MTIE. Antonio Suárez Zinzun</span>
+          <span class="dato__extra">Bases de Datos</span>
+        </div>
+        <div class="dato">
+          <span class="dato__etiqueta">Fecha</span>
+          <span class="dato__valor">Noviembre 2026</span>
+          <span class="dato__extra">Zamora, Michoacán</span>
+        </div>
+      </div>
+
+      <p class="pista anim" style="--d:9">Presiona <kbd>→</kbd> o <kbd>Espacio</kbd> para continuar</p>
+    </div>
+  </section>
+
+  <!-- ════════════════ 2. RUTA DE LA EXPOSICIÓN ════════════════ -->
+  <section class="slide slide--ruta" data-titulo="Ruta de la exposición">
+    <header class="encabezado">
+      <p class="sobretitulo anim" style="--d:0">Hoja de ruta</p>
+      <h2 class="encabezado__titulo anim" style="--d:1">Un mismo motor, tres capas de protección</h2>
+      <p class="encabezado__texto anim" style="--d:2">
+        Una base de datos guarda la información que el negocio necesita para operar. Protegerla no
+        es una sola acción: implica <strong>ejecutar la lógica de forma segura</strong>,
+        <strong>controlar quién accede</strong> y <strong>poder recuperarla</strong> cuando algo falla.
+        Recorreremos esas tres capas sobre el caso de estudio <code>optica_db</code>.
+      </p>
+    </header>
+
+    <div class="ruta">
+      <svg class="ruta__linea" viewBox="0 0 1000 20" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M 0 10 L 1000 10" />
+      </svg>
+
+      <article class="tarjeta anim" style="--d:3">
+        <div class="tarjeta__nodo"><span>01</span></div>
+        <p class="tarjeta__actividad">Actividad 3</p>
+        <h3 class="tarjeta__titulo">Procedimientos almacenados y transacciones</h3>
+        <p class="tarjeta__texto">Lógica que vive dentro del servidor y operaciones que se ejecutan completas o no se ejecutan.</p>
+        <div class="chips"><span>CREATE PROCEDURE</span><span>COMMIT</span><span>ROLLBACK</span></div>
+      </article>
+
+      <article class="tarjeta anim" style="--d:4">
+        <div class="tarjeta__nodo"><span>02</span></div>
+        <p class="tarjeta__actividad">Actividad 4</p>
+        <h3 class="tarjeta__titulo">Seguridad: roles y usuarios</h3>
+        <p class="tarjeta__texto">Principio del menor privilegio: cada cuenta accede sólo a lo que su función requiere.</p>
+        <div class="chips"><span>CREATE ROLE</span><span>GRANT</span><span>REVOKE</span></div>
+      </article>
+
+      <article class="tarjeta anim" style="--d:5">
+        <div class="tarjeta__nodo"><span>03</span></div>
+        <p class="tarjeta__actividad">Actividad 5</p>
+        <h3 class="tarjeta__titulo">Respaldos y restauración</h3>
+        <p class="tarjeta__texto">Copias lógicas y físicas, y una estrategia para volver a un estado consistente.</p>
+        <div class="chips"><span>mysqldump</span><span>Copia en frío</span><span>RESTORE</span></div>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<!-- Controles -->
+<nav class="controles" aria-label="Navegación de diapositivas">
+  <button class="controles__btn" id="btn-ant" aria-label="Anterior">&#8592;</button>
+  <span class="controles__contador"><span id="actual">1</span> / <span id="total">2</span></span>
+  <button class="controles__btn" id="btn-sig" aria-label="Siguiente">&#8594;</button>
+</nav>
+<div class="progreso"><div class="progreso__barra" id="progreso"></div></div>
+
+<script src="js/main.js"></script>
+</body>
+</html>

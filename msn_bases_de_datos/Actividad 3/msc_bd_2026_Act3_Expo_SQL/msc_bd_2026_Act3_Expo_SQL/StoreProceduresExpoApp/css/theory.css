@@ -1,0 +1,449 @@
+/* ============================================================
+   theory.css — pantalla de teoría y sus diagramas
+   ============================================================ */
+
+.teoria {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(4, 8, 16, 0.86);
+  display: flex;
+  /* Sin relleno: la teoria va a pantalla completa, no como tarjeta centrada */
+  padding: 0;
+  animation: teoria-entra 220ms ease-out;
+}
+
+@keyframes teoria-entra {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.teoria__caja {
+  /* Ocupa la pantalla entera: sin marco, sin esquinas y sin sombra, que solo
+     tenian sentido cuando era una tarjeta flotando sobre el fondo. */
+  width: 100%;
+  height: 100%;
+  /* La caja NO se desplaza: lo hace su cuerpo, para que la cabecera y el
+     boton "Ir al ejercicio" queden siempre a la vista. */
+  overflow: hidden;
+  background: var(--fondo-panel);
+  display: flex;
+  flex-direction: column;
+  animation: teoria-sube 260ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* Sin scale: encogiendo un panel a pantalla completa se asomarian los bordes
+   del fondo y parece un parpadeo. Basta con que suba. */
+@keyframes teoria-sube {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* ── Cabecera ───────────────────────────────────────────────── */
+
+.teoria__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid var(--borde);
+  flex-shrink: 0;
+}
+
+.teoria__numero {
+  flex-shrink: 0;
+  min-width: 54px;
+  height: 54px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: var(--azul-fondo);
+  border: 1px solid var(--azul);
+  color: var(--azul);
+  font-size: var(--fs-8);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teoria__titulos { flex: 1; min-width: 0; }
+
+.teoria__titulo {
+  font-size: var(--fs-9);
+  letter-spacing: -0.2px;
+  line-height: 1.25;
+}
+
+.teoria__subtitulo {
+  margin: 3px 0 0;
+  font-size: var(--fs-4);
+  color: var(--texto-apagado);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.teoria__insignia {
+  flex-shrink: 0;
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: var(--fs-1);
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--ambar);
+  background: var(--ambar-fondo);
+  border: 1px solid var(--ambar);
+}
+
+/* ── Cuerpo en dos columnas ─────────────────────────────────── */
+
+.teoria__cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 28px;
+  padding: 22px 28px;
+  flex: 1;
+  min-height: 0;
+  /* Sin esto el cuerpo se encoge por debajo de su contenido y lo recorta
+     sin dejar forma de verlo. */
+  overflow-y: auto;
+  align-content: start;
+}
+
+/* Sin marco de foco: el cuerpo es enfocable solo para poder desplazarlo */
+.teoria__cuerpo:focus { outline: none; }
+.teoria__cuerpo:focus-visible { outline: 1px solid var(--borde); outline-offset: -1px; }
+
+.teoria__prosa p {
+  margin: 0 0 11px;
+  font-size: var(--fs-6);
+  line-height: 1.55;
+  color: var(--texto);
+}
+.teoria__prosa p:last-of-type { margin-bottom: 0; }
+.teoria__prosa strong { color: #fff; font-weight: 650; }
+.teoria__prosa em { color: var(--texto-tenue); font-style: italic; }
+
+.teoria__cuerpo code {
+  font-family: var(--mono);
+  font-size: var(--fs-4);
+  background: var(--fondo-elevado);
+  border: 1px solid var(--borde-suave);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--azul);
+  white-space: nowrap;
+}
+
+.teoria__sub {
+  font-size: var(--fs-2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--texto-apagado);
+  margin: 0 0 8px;
+}
+.teoria__lateral > .teoria__sub:not(:first-child) { margin-top: 20px; }
+
+.teoria__codigo {
+  margin: 0;
+  padding: 13px 15px;
+  background: var(--fondo-panel-alt);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  font-family: var(--mono);
+  font-size: var(--fs-3);
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--texto);
+}
+
+.teoria__lista {
+  margin: 0;
+  padding-left: 17px;
+  font-size: var(--fs-4);
+  color: var(--texto-tenue);
+  line-height: 1.6;
+}
+.teoria__lista li { margin-bottom: 5px; }
+
+/* ── Avisos / trampas ───────────────────────────────────────── */
+
+.aviso {
+  border-left: 3px solid var(--ambar);
+  background: var(--ambar-fondo);
+  border-radius: 0 var(--radio-chico) var(--radio-chico) 0;
+  padding: 8px 12px;
+  margin-bottom: 7px;
+}
+.aviso:last-child { margin-bottom: 0; }
+
+.aviso__titulo {
+  display: block;
+  font-size: var(--fs-4);
+  color: var(--ambar);
+  margin-bottom: 3px;
+}
+
+.aviso__texto {
+  margin: 0;
+  font-size: var(--fs-4);
+  line-height: 1.55;
+  color: var(--texto-tenue);
+}
+.aviso__texto code { font-size: var(--fs-3); }
+
+/* ── Pie ────────────────────────────────────────────────────── */
+
+.teoria__pie {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 15px 28px;
+  border-top: 1px solid var(--borde);
+  background: var(--fondo-panel-alt);
+  flex-shrink: 0;
+}
+
+.teoria__atajo { font-size: var(--fs-3); color: var(--texto-apagado); }
+
+/* Aviso de contenido pendiente: en proyector la barra de desplazamiento
+   pasa desapercibida, y conviene que se note que falta por leer. */
+.teoria__mas {
+  font-size: var(--fs-3);
+  font-weight: 600;
+  color: var(--ambar);
+  background: var(--ambar-fondo);
+  border: 1px solid var(--ambar);
+  border-radius: 20px;
+  padding: 3px 12px;
+  animation: teoria-mas 1.9s ease-in-out infinite;
+}
+
+@keyframes teoria-mas {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+.teoria__ir {
+  margin-left: auto;
+  padding: 9px 20px;
+  font-size: var(--fs-5);
+}
+
+/* ── Diagrama: flujo de cajas ───────────────────────────────── */
+
+.diagrama {
+  margin: 15px 0 0;
+  padding: 13px;
+  background: var(--fondo-panel-alt);
+  border: 1px solid var(--borde-suave);
+  border-radius: var(--radio);
+}
+
+.diagrama__pie {
+  margin-top: 11px;
+  font-size: var(--fs-3);
+  color: var(--texto-apagado);
+  text-align: center;
+  font-style: italic;
+}
+
+.flujo {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.flujo__conector {
+  align-self: center;
+  color: var(--texto-apagado);
+  font-size: var(--fs-6);
+  flex-shrink: 0;
+}
+
+.flujo__nodo {
+  /* Par de colores que usa el resaltado. Cada modificador los reescribe;
+     asi el efecto de :hover se escribe UNA vez y no seis. */
+  --acento: var(--texto-tenue);
+  --halo:   var(--azul-halo);
+  flex: 1;
+  min-width: 92px;
+  padding: 9px 11px;
+  border-radius: var(--radio-chico);
+  border: 1px solid var(--borde);
+  background: var(--fondo-elevado);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  /* z-index solo funciona con position: al crecer, el nodo tiene que taparlo
+     todo, no quedar por debajo de sus vecinos ni de las flechas. */
+  position: relative;
+  z-index: 0;
+  transition: transform 130ms, box-shadow 150ms, border-color 150ms;
+}
+
+.flujo__texto {
+  font-family: var(--mono);
+  font-size: var(--fs-3);
+  font-weight: 600;
+  color: var(--texto);
+  line-height: 1.4;
+}
+
+.flujo__sub {
+  font-size: var(--fs-2);
+  color: var(--texto-apagado);
+  line-height: 1.35;
+}
+
+.flujo__nodo--ok     { border-color: var(--verde);  background: var(--verde-fondo);  --acento: var(--verde);  --halo: var(--verde-halo); }
+.flujo__nodo--ok     .flujo__texto { color: var(--verde); }
+.flujo__nodo--error  { border-color: var(--rojo);   background: var(--rojo-fondo);   --acento: var(--rojo);   --halo: var(--rojo-halo); }
+.flujo__nodo--error  .flujo__texto { color: var(--rojo); }
+.flujo__nodo--marca  { border-color: var(--morado); background: var(--morado-fondo); --acento: var(--morado); --halo: var(--morado-halo); }
+.flujo__nodo--marca  .flujo__texto { color: var(--morado); }
+
+/* Al señalar un nodo con el raton: crece, se enciende un halo de su color,
+   se avivan borde y texto, y una sombra lo despega del panel. En proyector
+   el cursor apenas se ve, asi que esto es lo que hace de puntero. */
+@media (hover: hover) {
+  .flujo__nodo:hover {
+    transform: scale(1.10);
+    /* No-op en los nodos de color (su borde ya es el acento): solo aviva
+       el borde gris de los neutros. */
+    border-color: var(--acento);
+    box-shadow: 0 0 0 1px var(--halo), 0 0 18px 2px var(--halo), var(--sombra);
+    z-index: 2;
+  }
+  /* brightness() aviva el texto sea cual sea su color, sin duplicar reglas */
+  .flujo__nodo:hover .flujo__texto { filter: brightness(1.2); }
+  .flujo__nodo:hover .flujo__sub   { color: var(--texto-tenue); }
+}
+
+/* ── Diagrama: línea de tiempo ──────────────────────────────── */
+
+.linea-t {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.linea-t__paso {
+  /* Mismo par de colores que en .flujo__nodo (ver alli el porque) */
+  --acento: var(--texto-tenue);
+  --halo:   var(--azul-halo);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 12px;
+  border-radius: var(--radio-chico);
+  border: 1px solid var(--borde);
+  border-left-width: 3px;
+  background: var(--fondo-elevado);
+  position: relative;
+  z-index: 0;
+  transition: transform 130ms, box-shadow 150ms, border-color 150ms, opacity 150ms;
+}
+
+.linea-t__texto {
+  font-family: var(--mono);
+  font-size: var(--fs-3);
+  font-weight: 600;
+  color: var(--texto);
+  flex-shrink: 0;
+}
+
+.linea-t__nota {
+  font-size: var(--fs-2);
+  color: var(--texto-apagado);
+  margin-left: auto;
+  text-align: right;
+}
+
+/* Tramo vertical que une un paso con el siguiente */
+.linea-t__union {
+  width: 2px;
+  height: 11px;
+  margin-left: 19px;
+  background: var(--borde);
+  flex-shrink: 0;
+}
+
+.linea-t__paso--ok        { border-left-color: var(--verde); --acento: var(--verde); --halo: var(--verde-halo); }
+.linea-t__paso--ok        .linea-t__texto { color: var(--verde); }
+.linea-t__paso--pendiente { border-left-color: var(--ambar); border-style: dashed; border-left-style: solid; --acento: var(--ambar); --halo: var(--ambar-halo); }
+.linea-t__paso--pendiente .linea-t__texto { color: var(--ambar); }
+.linea-t__paso--error     { border-left-color: var(--rojo); --acento: var(--rojo); --halo: var(--rojo-halo); }
+.linea-t__paso--error     .linea-t__texto { color: var(--rojo); }
+.linea-t__paso--marca     { border-left-color: var(--morado); --acento: var(--morado); --halo: var(--morado-halo); }
+.linea-t__paso--marca     .linea-t__texto { color: var(--morado); }
+.linea-t__paso--deshecho  { border-left-color: var(--texto-apagado); opacity: 0.62; --acento: var(--texto-apagado); --halo: var(--apagado-halo); }
+.linea-t__paso--deshecho  .linea-t__texto { text-decoration: line-through; color: var(--texto-apagado); }
+
+/* Resaltado al señalar un paso. Escala mucho menor que en .flujo__nodo: estas
+   filas ocupan todo el ancho (~590px), asi que 1.04 ya las hace crecer ~12px
+   por lado y se comen enteros los 13px de padding de .diagrama. Subir mas de
+   aqui hace que el paso se salga del marco del diagrama. */
+@media (hover: hover) {
+  .linea-t__paso:hover {
+    transform: scale(1.04);
+    border-color: var(--acento);
+    box-shadow: 0 0 0 1px var(--halo), 0 0 18px 2px var(--halo), var(--sombra);
+    z-index: 2;
+  }
+  .linea-t__paso:hover .linea-t__texto { filter: brightness(1.2); }
+  .linea-t__paso:hover .linea-t__nota  { color: var(--texto-tenue); }
+
+  /* El paso deshecho esta atenuado a 0.62: al señalarlo se lee mejor, pero no
+     llega a opacidad plena para que se siga viendo como "deshecho". */
+  .linea-t__paso--deshecho:hover { opacity: 0.85; }
+}
+
+/* Bifurcación final: dos ramas lado a lado */
+.linea-t__bifurcacion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.linea-t__rama {
+  display: flex;
+  flex-direction: column;
+}
+.linea-t__rama .linea-t__paso { flex: 1; align-items: flex-start; flex-direction: column; gap: 3px; }
+.linea-t__rama .linea-t__nota { margin-left: 0; text-align: left; }
+.linea-t__union--rama { align-self: center; margin-left: 0; }
+
+/* ── Pantallas cortas: se aprieta todo un poco ──────────────── */
+
+/* En pantallas bajas se recorta el relleno. El tamaño de letra ya lo baja
+   la regla de --escala en layout.css: aquí no se toca, para que exista un
+   solo mecanismo de escalado. */
+@media (max-height: 780px) {
+  .teoria__cabecera { padding: 14px 22px 12px; }
+  .teoria__cuerpo { padding: 16px 22px; gap: 22px; }
+  .teoria__pie { padding: 11px 22px; }
+  .teoria__prosa p { margin-bottom: 10px; }
+  .teoria__numero { min-width: 46px; height: 46px; }
+}
+
+/* ── Pantallas angostas: una sola columna ───────────────────── */
+
+@media (max-width: 900px) {
+  .teoria__cuerpo { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* ── Menos movimiento ───────────────────────────────────────── */
+
+/* La regla global de base.css recorta las duraciones, pero el transform se
+   seguiria aplicando de golpe. Aqui se quita el cambio de tamaño y se deja
+   el halo y la sombra: no son movimiento, y son justo lo que hace de puntero. */
+@media (prefers-reduced-motion: reduce) {
+  .flujo__nodo:hover,
+  .linea-t__paso:hover { transform: none; }
+}

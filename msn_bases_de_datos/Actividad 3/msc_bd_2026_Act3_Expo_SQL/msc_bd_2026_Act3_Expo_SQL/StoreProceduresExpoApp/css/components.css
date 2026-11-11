@@ -1,0 +1,516 @@
+/* ============================================================
+   components.css — botones, pasos, bloques, editor, tablas, consola
+   ============================================================ */
+
+/* ── Botones ────────────────────────────────────────────────── */
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: var(--radio-chico);
+  padding: 7px 14px;
+  font-weight: 600;
+  font-size: var(--fs-4);
+  cursor: pointer;
+  transition: filter 120ms, background 120ms, border-color 120ms;
+  white-space: nowrap;
+}
+.btn:hover:not(:disabled) { filter: brightness(1.15); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn--primario {
+  background: var(--verde);
+  color: #06231a;
+}
+
+.btn--secundario {
+  background: var(--fondo-elevado);
+  color: var(--texto);
+  border-color: var(--borde);
+}
+
+.btn--fantasma {
+  background: transparent;
+  color: var(--texto-tenue);
+  border-color: var(--borde);
+}
+.btn--fantasma:hover:not(:disabled) { color: var(--texto); }
+
+.btn--mini { padding: 4px 10px; font-size: var(--fs-3); background: var(--fondo-elevado); color: var(--texto); border-color: var(--borde); }
+
+.icono {
+  background: transparent;
+  border: none;
+  color: var(--texto-apagado);
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: var(--fs-4);
+}
+.icono:hover { color: var(--rojo); background: var(--fondo-elevado); }
+
+/* ── Indicador de pasos / niveles ───────────────────────────── */
+
+.pasos {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+}
+
+.paso {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--borde);
+  background: transparent;
+  color: var(--texto-apagado);
+  font-size: var(--fs-2);
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 150ms;
+}
+.paso:hover { border-color: var(--texto-tenue); color: var(--texto); }
+.paso--actual {
+  background: var(--azul-fondo);
+  border-color: var(--azul);
+  color: var(--azul);
+  box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.12);
+}
+.paso--hecho {
+  background: var(--verde-fondo);
+  border-color: var(--verde);
+  color: var(--verde);
+}
+
+/* ── Bloques arrastrables ───────────────────────────────────── */
+
+.bloque {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radio-chico);
+  border: 1px solid;
+  background: var(--fondo-elevado);
+  font-family: var(--mono);
+  font-size: var(--fs-3);
+  color: var(--texto);
+  cursor: grab;
+  user-select: none;
+  transition: transform 100ms, box-shadow 120ms;
+}
+.bloque:hover { transform: translateX(3px); box-shadow: var(--sombra); }
+.bloque:active { cursor: grabbing; }
+.bloque--arrastrando { opacity: 0.4; }
+
+.bloque--tx         { border-color: var(--cat-tx);         color: var(--cat-tx); }
+.bloque--peligro    { border-color: var(--cat-peligro);    color: var(--cat-peligro); }
+.bloque--estructura { border-color: var(--cat-estructura); color: var(--cat-estructura); }
+.bloque--dml        { border-color: var(--cat-dml);        color: var(--cat-dml); }
+.bloque--control    { border-color: var(--cat-control);    color: var(--cat-control); }
+
+.toolbox__grupo {
+  margin: 10px 0 5px;
+  font-size: var(--fs-1);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--texto-apagado);
+}
+
+/* ── Editor ─────────────────────────────────────────────────── */
+
+.editor {
+  position: relative;
+  overflow-y: auto;
+  background: var(--fondo-panel-alt);
+  font-family: var(--mono);
+  font-size: var(--fs-4);
+}
+.editor--recibiendo { background: rgba(76, 201, 240, 0.06); box-shadow: inset 0 0 0 2px var(--azul); }
+
+.editor__lineas {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  counter-reset: linea;
+}
+
+.editor__vacio {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--texto-apagado);
+  font-family: var(--fuente);
+  font-size: var(--fs-4);
+  pointer-events: none;
+}
+
+.linea {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 1px 12px 1px 0;
+  counter-increment: linea;
+  position: relative;
+}
+.linea::before {
+  content: counter(linea);
+  width: 40px;
+  flex-shrink: 0;
+  text-align: right;
+  color: var(--texto-apagado);
+  font-size: var(--fs-3);
+  padding-top: 3px;
+  user-select: none;
+}
+.linea:hover { background: rgba(255, 255, 255, 0.025); }
+.linea--activa { background: var(--azul-fondo); }
+.linea--error  { background: var(--rojo-fondo); }
+
+.linea__cuerpo {
+  flex: 1;
+  padding: 2px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.linea__quitar {
+  opacity: 0;
+  background: transparent;
+  border: none;
+  color: var(--texto-apagado);
+  cursor: pointer;
+  font-size: var(--fs-5);
+  line-height: 1;
+  padding: 2px 4px;
+  flex-shrink: 0;
+}
+.linea:hover .linea__quitar { opacity: 1; }
+.linea__quitar:hover { color: var(--rojo); }
+
+/* Indicador de posición de suelte. El margen izquierdo debe coincidir con
+   el ancho del numero de linea (40px) mas su separacion (10px). */
+.marca-suelte {
+  height: 2px;
+  background: var(--azul);
+  margin: 1px 12px 1px 50px;
+  border-radius: 2px;
+  box-shadow: 0 0 6px var(--azul);
+}
+
+/* Coloreado de sintaxis */
+.kw   { color: var(--azul); font-weight: 600; }
+.kw-tx { color: var(--verde); font-weight: 600; }
+.kw-peligro { color: var(--rojo); font-weight: 600; }
+.tipo { color: var(--morado); }
+.txt  { color: var(--ambar); }
+.num  { color: #f0a5c8; }
+.com  { color: var(--texto-apagado); font-style: italic; }
+
+/* Huecos rellenables */
+.hueco {
+  display: inline-block;
+  min-width: 48px;
+  padding: 0 5px;
+  border-radius: 3px;
+  border: 1px dashed var(--ambar);
+  background: var(--ambar-fondo);
+  color: var(--ambar);
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: var(--fs-4);
+}
+.hueco:hover { filter: brightness(1.25); }
+
+/* Ya relleno se aprieta: el hueco vacio necesita ser un blanco de clic
+   comodo, pero el lleno debe leerse como parte del codigo, sin separarlo
+   artificialmente de los parentesis o el punto y coma que lo siguen. */
+.hueco--lleno {
+  min-width: 0;
+  padding: 0 2px;
+  border-style: solid;
+  border-color: var(--borde);
+  background: var(--fondo-elevado);
+  color: var(--texto);
+}
+.hueco--demo { cursor: default; }
+
+.hueco-input, .hueco-select {
+  background: var(--fondo-elevado);
+  border: 1px solid var(--azul);
+  color: var(--texto);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: var(--fs-4);
+  padding: 0 4px;
+}
+.hueco-input { width: 94px; }
+
+/* Barra de acciones del editor. Envuelve si la columna se queda corta. */
+.editor__barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 9px 10px;
+  border-top: 1px solid var(--borde);
+  background: var(--fondo-panel-alt);
+  flex-shrink: 0;
+}
+.editor__barra .btn { padding: 7px 11px; }
+.editor__barra .btn--primario { margin-left: auto; }
+
+.reproduccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-top: 1px solid var(--borde-suave);
+  background: var(--fondo-panel-alt);
+  font-size: var(--fs-3);
+  color: var(--texto-tenue);
+  flex-shrink: 0;
+}
+.reproduccion__grupo { display: flex; align-items: center; gap: 6px; }
+.reproduccion__check { cursor: pointer; }
+.reproduccion select {
+  background: var(--fondo-elevado);
+  color: var(--texto);
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  padding: 2px 5px;
+}
+.reproduccion .btn--mini { margin-left: auto; }
+
+/* ── Tablas de la base de datos ─────────────────────────────── */
+
+.tabla-bloque { margin-bottom: 16px; }
+
+.tabla-bloque__nombre {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-3);
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: var(--texto);
+}
+.tabla-bloque__conteo {
+  font-weight: 400;
+  font-size: var(--fs-2);
+  color: var(--texto-apagado);
+}
+
+/* Contenedor de desplazamiento propio de cada tabla */
+.tabla-bloque__scroll {
+  overflow-x: auto;
+  border-radius: var(--radio-chico);
+}
+
+table.datos {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: var(--fs-3);
+}
+table.datos th {
+  text-align: left;
+  padding: 5px 8px;
+  background: var(--fondo-elevado);
+  color: var(--texto-tenue);
+  font-weight: 600;
+  border-bottom: 1px solid var(--borde);
+  white-space: nowrap;
+}
+table.datos td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--borde-suave);
+  white-space: nowrap;
+}
+table.datos tr:last-child td { border-bottom: none; }
+/* Fila marcadora de "tabla sin registros": no participa del orden real */
+table.datos tr.sin-datos { background: transparent; }
+
+table.datos .vacio {
+  color: var(--texto-apagado);
+  font-style: italic;
+  font-family: var(--fuente);
+  text-align: center;
+  padding: 10px;
+}
+
+/* ── Insignias ──────────────────────────────────────────────── */
+
+.insignia {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: var(--fs-1);
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  border: 1px solid;
+}
+.insignia--tx {
+  color: var(--ambar);
+  border-color: var(--ambar);
+  background: var(--ambar-fondo);
+  margin-left: auto;
+}
+
+/* ── Consola ────────────────────────────────────────────────── */
+
+.consola { font-family: var(--mono); font-size: var(--fs-3); line-height: 1.65; }
+
+.consola__linea {
+  display: flex;
+  gap: 7px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.consola__linea::before { content: "›"; color: var(--texto-apagado); flex-shrink: 0; }
+
+/* Filas de un resultado de SELECT: la alineacion en columnas manda, asi que
+   no envuelven. El desbordamiento se desplaza dentro del propio panel. */
+.consola__linea--tabla {
+  white-space: pre;
+  overflow-wrap: normal;
+  display: block;
+}
+.consola__linea--tabla::before { content: none; }
+.consola__linea--ok    { color: var(--verde); }
+.consola__linea--info  { color: var(--texto-tenue); }
+.consola__linea--aviso { color: var(--ambar); }
+.consola__linea--error { color: var(--rojo); }
+.consola__linea--tx    { color: var(--azul); font-weight: 600; }
+
+.led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--verde);
+  margin-left: auto;
+  box-shadow: 0 0 7px var(--verde);
+}
+.led--error { background: var(--rojo); box-shadow: 0 0 7px var(--rojo); }
+.led--trabajando { background: var(--ambar); box-shadow: 0 0 7px var(--ambar); }
+
+/* ── Barra de reto ──────────────────────────────────────────── */
+
+/* Toda la franja de texto es el disparador del desplegable, no un boton
+   con aspecto de boton: se delata solo con el fondo al pasar el raton. */
+.reto__toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 7px 12px;
+  background: none;
+  border: 0;
+  border-radius: var(--radio-chico);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.reto__toggle:hover { background: var(--fondo-elevado); }
+.reto__toggle:focus-visible { outline: 2px solid var(--azul); outline-offset: -2px; }
+
+.reto__chevron {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--borde);
+  color: var(--azul);
+  font-size: var(--fs-1);
+  transition: transform 280ms cubic-bezier(0.2, 0.9, 0.3, 1), border-color 120ms;
+}
+.reto__toggle:hover .reto__chevron { border-color: var(--azul); }
+/* Abierto, la flecha se da la vuelta: ahora significa "replegar" */
+.reto--abierto .reto__chevron { transform: rotate(180deg); }
+
+/* Son <span> (van dentro de un <button>), asi que hay que hacerlos bloque */
+.reto__titulo { display: block; font-size: var(--fs-5); margin-bottom: 2px; }
+.reto__desc {
+  display: block;
+  margin: 0;
+  font-size: var(--fs-4);
+  color: var(--texto-tenue);
+  /* Una sola linea: el enunciado entero vive en el desplegable */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reto__desc code {
+  font-family: var(--mono);
+  background: var(--fondo-elevado);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--azul);
+  font-size: var(--fs-3);
+}
+
+/* ── Contenido del desplegable: el mismo enunciado, en grande ── */
+
+.reto__panel-sub {
+  margin: 0 0 10px;
+  font-size: var(--fs-2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--texto-apagado);
+}
+
+.reto__objetivo {
+  margin: 0;
+  /* Tope de medida: a pantalla completa la linea se haria ilegible de larga */
+  max-width: 95ch;
+  font-size: var(--fs-7);
+  line-height: 1.55;
+  color: var(--texto);
+}
+.reto__objetivo strong { color: #fff; font-weight: 650; }
+.reto__objetivo code {
+  font-family: var(--mono);
+  font-size: var(--fs-6);
+  background: var(--fondo-elevado);
+  border: 1px solid var(--borde-suave);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--azul);
+}
+
+/* ── Modal ──────────────────────────────────────────────────── */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 8, 16, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal__caja {
+  background: var(--fondo-panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 22px 26px;
+  max-width: 460px;
+  box-shadow: var(--sombra);
+}
+.modal__caja h3 { margin-bottom: 12px; }
+.modal__caja h4 { margin: 16px 0 8px; color: var(--texto-tenue); font-size: var(--fs-3); text-transform: uppercase; letter-spacing: 0.6px; }
+.modal__caja ul { margin: 0; padding-left: 18px; font-size: var(--fs-4); color: var(--texto-tenue); }
+.modal__caja li { margin-bottom: 5px; }
+.modal__caja .atajos { list-style: none; padding: 0; }
+.modal__caja .btn { margin-top: 18px; }
