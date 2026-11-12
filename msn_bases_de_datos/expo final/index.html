@@ -110,6 +110,1892 @@
     </div>
   </section>
 
+  <!-- ════════════════ 3+. DEMOSTRACIONES EN VIVO ════════════════ -->
+  <!-- DEMOS:INICIO -->
+  <!-- Generado por tools/generar_demos.py a partir de demo_expo.sql. No editar a mano. -->
+  <section class="slide slide--demo" data-titulo="P.1 · Base de datos, tablas y datos de muestra">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">P.1</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Preparación</p>
+          <h2 class="demo__titulo">Base de datos, tablas y datos de muestra</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Construir <code>optica_db</code> desde cero: 9 tablas en orden de dependencias, con sus llaves, restricciones e índices, y un juego de datos conocido.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li><code>DROP</code> / <code>CREATE DATABASE</code> con <code>utf8mb4</code>.</li>
+          <li>Tablas sin llaves foráneas primero (<code>optica</code>, <code>rol</code>), luego sus dependientes hasta <code>receta</code>.</li>
+          <li>Datos de muestra con id derivados de <code>MD5('etiqueta')</code>.</li>
+          <li>Verificar tablas, conteos y reglas de borrado.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>9 tablas creadas sin errores.</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Filas: 2 ópticas · 3 roles · 4 sucursales · 5 usuarios · 9 asignaciones · 6 pacientes · 6 expedientes · 9 asientos · 8 recetas</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Llaves foráneas: <code>RESTRICT</code> en el historial clínico, <code>CASCADE</code> sólo en la tabla puente y en <code>receta</code>.</span></li>
+          <li class="esperado esperado--aviso"><span class="esperado__icono">!</span><span>Ejecutar con <kbd>Alt</kbd>+<kbd>X</kbd>: con <kbd>Ctrl</kbd>+<kbd>Enter</kbd> son más de 30 sentencias.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [P.1]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota nota--sesion">BASE DE DATOS</p>
+          <p class="nota ">Se elimina si existe para partir de cero (roles y cuentas no se tocan: viven en el esquema mysql).</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DROP DATABASE IF EXISTS optica_db;</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE DATABASE optica_db
+    DEFAULT CHARACTER SET utf8mb4
+    DEFAULT COLLATE utf8mb4_0900_ai_ci;</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">USE optica_db;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">1. OPTICA</p>
+          <p class="nota ">Entidad raíz del modelo. Todo cuelga directa o indirectamente de aquí.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE TABLE optica (
+    id      BINARY(16)   NOT NULL COMMENT 'UUID ordenado generado en la capa de aplicación',
+    nombre  VARCHAR(150) NOT NULL COMMENT 'Nombre comercial o razón social',
+    CONSTRAINT pk_optica PRIMARY KEY (id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'Negocios registrados en el sistema';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">2. ROL</p>
+          <p class="nota ">Catálogo de perfiles de permisos.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE TABLE rol (
+    id           BINARY(16)   NOT NULL,
+    nombre       VARCHAR(150) NOT NULL COMMENT 'Administrador, Optometrista, Recepción, etc.',
+    descripcion  VARCHAR(200) NULL     COMMENT 'Atribuciones del perfil',
+    CONSTRAINT pk_rol PRIMARY KEY (id),
+    CONSTRAINT uq_rol_nombre UNIQUE (nombre)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'Perfiles de permisos del sistema';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">3. SUCURSAL</p>
+          <p class="nota ">Punto físico de atención perteneciente a una óptica.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE TABLE sucursal (
+    id         BINARY(16)   NOT NULL,
+    optica_id  BINARY(16)   NOT NULL,
+    nombre     VARCHAR(150) NOT NULL,
+    direccion  VARCHAR(200) NULL COMMENT 'Calle, número, colonia y ciudad',
+    CONSTRAINT pk_sucursal PRIMARY KEY (id),
+    -- Unicidad compuesta: dos ópticas distintas sí pueden repetir el nombre.
+    -- Este índice también resuelve la búsqueda por optica_id (prefijo izquierdo).
+    CONSTRAINT uq_sucursal_optica_nombre UNIQUE (optica_id, nombre),
+    CONSTRAINT fk_sucursal_optica
+        FOREIGN KEY (optica_id) REFERENCES optica (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'Sucursales o consultorios de cada óptica';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">4. USUARIO</p>
+          <p class="nota ">Personal que accede al sistema.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE TABLE usuario (
+    id             BINARY(16)   NOT NULL,
+    optica_id      BINARY(16)   NOT NULL,
+    rol_id         BINARY(16)   NOT NULL,
+    nombre         VARCHAR(150) NOT NULL,
+    correo         VARCHAR(150) NOT NULL COMMENT 'Credencial de acceso',
+    password_hash  VARCHAR(255) NOT NULL COMMENT 'Hash bcrypt. Nunca la contraseña en claro',
+    activo         BOOLEAN      NOT NULL DEFAULT TRUE
+                                COMMENT 'Baja lógica: conserva el historial del usuario',
+    CONSTRAINT pk_usuario PRIMARY KEY (id),
+    -- Un correo puede repetirse entre ópticas distintas, no dentro de la misma.
+    CONSTRAINT uq_usuario_optica_correo UNIQUE (optica_id, correo),
+    CONSTRAINT fk_usuario_optica
+        FOREIGN KEY (optica_id) REFERENCES optica (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_usuario_rol
+        FOREIGN KEY (rol_id) REFERENCES rol (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'Personal con acceso al sistema';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">La llave foránea rol_id no queda cubierta por ningún índice existente.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE INDEX ix_usuario_rol ON usuario (rol_id);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">5. USUARIO_SUCURSAL</p>
+          <p class="nota ">Tabla puente. Resuelve el muchos a muchos entre usuario y sucursal.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE TABLE usuario_sucursal (
+    usuario_id   BINARY(16) NOT NULL,
+    sucursal_id  BINARY(16) NOT NULL,
+    -- La llave primaria compuesta es la tabla misma: no hay columnas propias.
+    CONSTRAINT pk_usuario_sucursal PRIMARY KEY (usuario_id, sucursal_id),
+    -- CASCADE es correcto aquí: la asignación no tiene existencia propia.
+    CONSTRAINT fk_usuario_sucursal_usuario
+        FOREIGN KEY (usuario_id) REFERENCES usuario (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_usuario_sucursal_sucursal
+        FOREIGN KEY (sucursal_id) REFERENCES sucursal (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'Sucursales en las que puede operar cada usuario';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">La PK cubre usuario_id; la navegación inversa necesita su propio índice.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE INDEX ix_usuario_sucursal_sucursal ON usuario_sucursal (sucursal_id);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">6. PACIENTE</p>
+          <p class="nota ">Datos de identificación y contacto de la persona atendida.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE TABLE paciente (
+    id                BINARY(16)   NOT NULL,
+    optica_id         BINARY(16)   NOT NULL,
+    nombre            VARCHAR(150) NOT NULL,
+    fecha_nacimiento  DATE         NOT NULL COMMENT 'Permite derivar la edad en cada consulta',
+    sexo              CHAR(1)      COLLATE utf8mb4_0900_as_cs NOT NULL
+                                   COMMENT 'Intercalación sensible a mayúsculas: solo acepta M o F',
+    telefono          VARCHAR(20)  NOT NULL COMMENT 'Dato requerido por el escenario',
+    correo            VARCHAR(150) NOT NULL COMMENT 'Dato requerido por el escenario',
+    direccion         VARCHAR(200) NULL     COMMENT 'Único dato declarado como opcional',
+    CONSTRAINT pk_paciente PRIMARY KEY (id),
+    -- Con la intercalación por defecto (ai_ci) este CHECK aceptaría 'm' y 'f'
+    -- minúsculas. Por eso la columna declara utf8mb4_0900_as_cs.
+    CONSTRAINT chk_paciente_sexo
+        CHECK (sexo IN ('M', 'F')),
+    -- correo es NOT NULL, por lo que el CHECK se evalúa siempre.
+    CONSTRAINT chk_paciente_correo
+        CHECK (correo REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'),
+    CONSTRAINT fk_paciente_optica
+        FOREIGN KEY (optica_id) REFERENCES optica (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'Personas atendidas por la óptica';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Búsqueda más frecuente del sistema: paciente por nombre dentro de la óptica. Su prefijo izquierdo también da soporte a la llave foránea optica_id.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE INDEX ix_paciente_optica_nombre ON paciente (optica_id, nombre);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">7. EXPEDIENTE</p>
+          <p class="nota ">Contenedor del historial clínico. Uno solo por paciente.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE TABLE expediente (
+    id              BINARY(16)  NOT NULL,
+    paciente_id     BINARY(16)  NOT NULL,
+    fecha_creacion  DATE        NOT NULL DEFAULT (CURRENT_DATE),
+    folio           VARCHAR(20) NOT NULL COMMENT 'EXP-AAAA-NNNN, consecutivo anual',
+    CONSTRAINT pk_expediente PRIMARY KEY (id),
+    -- La unicidad es lo que impone la relación uno a uno con paciente.
+    CONSTRAINT uq_expediente_paciente UNIQUE (paciente_id),
+    -- El folio es único en todo el sistema. Este índice también permite
+    -- bloquear el rango de folios de un año (SELECT ... FOR UPDATE) al
+    -- calcular el siguiente consecutivo.
+    CONSTRAINT uq_expediente_folio UNIQUE (folio),
+    CONSTRAINT chk_expediente_folio
+        CHECK (folio REGEXP '^EXP-[0-9]{4}-[0-9]{4}$'),
+    -- RESTRICT: el historial clínico sobrevive a la ficha de contacto.
+    CONSTRAINT fk_expediente_paciente
+        FOREIGN KEY (paciente_id) REFERENCES paciente (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'Historial clínico del paciente';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">8. ASIENTO_CLINICO</p>
+          <p class="nota ">Registro de cada consulta. Tabla de mayor crecimiento del modelo.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE TABLE asiento_clinico (
+    id                   BINARY(16) NOT NULL,
+    expediente_id        BINARY(16) NOT NULL,
+    usuario_id           BINARY(16) NOT NULL COMMENT 'Quién atendió la consulta',
+    sucursal_id          BINARY(16) NOT NULL COMMENT 'Dónde se atendió. usuario_id no lo determina: un usuario opera en varias sucursales',
+    fecha                DATE       NOT NULL DEFAULT (CURRENT_DATE),
+    sintomas             TEXT       NULL,
+    enfermedades         TEXT       NULL,
+    heredofamiliares     TEXT       NULL,
+    analisis_preliminar  TEXT       NULL,
+    observaciones        TEXT       NULL,
+    CONSTRAINT pk_asiento_clinico PRIMARY KEY (id),
+    -- RESTRICT protege el historial clínico.
+    CONSTRAINT fk_asiento_expediente
+        FOREIGN KEY (expediente_id) REFERENCES expediente (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    -- RESTRICT preserva la trazabilidad de quién atendió; para dar de baja
+    -- a un usuario se usa activo = FALSE.
+    CONSTRAINT fk_asiento_usuario
+        FOREIGN KEY (usuario_id) REFERENCES usuario (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    -- RESTRICT: una sucursal con historial no se elimina.
+    CONSTRAINT fk_asiento_sucursal
+        FOREIGN KEY (sucursal_id) REFERENCES sucursal (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'Consultas registradas en un expediente';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Recupera el historial de un paciente en orden cronológico sin ordenar aparte.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE INDEX ix_asiento_expediente_fecha ON asiento_clinico (expediente_id, fecha);
+CREATE INDEX ix_asiento_usuario          ON asiento_clinico (usuario_id);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Da soporte a la FK y resuelve el reporte por sucursal y periodo, que es el equivalente al archivo de Excel de cada sucursal.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE INDEX ix_asiento_sucursal_fecha   ON asiento_clinico (sucursal_id, fecha);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">9. RECETA</p>
+          <p class="nota ">Graduación óptica derivada de una consulta. OD = ojo derecho (oculus dexter) | OI = ojo izquierdo (oculus sinister)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE TABLE receta (
+    id             BINARY(16)   NOT NULL,
+    asiento_id     BINARY(16)   NOT NULL,
+    fecha          DATE         NOT NULL COMMENT 'Fecha de emisión: puede ser posterior a la de la consulta',
+    material_mica  VARCHAR(100) NULL COMMENT 'Policarbonato, CR-39, alto índice, etc. Será catálogo al integrar inventarios',
+    dip            DECIMAL(4,1) NULL COMMENT 'Distancia interpupilar en milímetros',
+    altura         DECIMAL(4,1) NULL COMMENT 'Altura del centro óptico en milímetros',
+    od_esfera      DECIMAL(4,2) NULL COMMENT 'Potencia esférica en dioptrías',
+    od_cilindro    DECIMAL(4,2) NULL COMMENT 'Potencia cilíndrica (astigmatismo)',
+    od_eje         SMALLINT     NULL COMMENT 'Orientación del cilindro en grados',
+    od_adicion     DECIMAL(3,1) NULL COMMENT 'Adición para visión cercana',
+    oi_esfera      DECIMAL(4,2) NULL,
+    oi_cilindro    DECIMAL(4,2) NULL,
+    oi_eje         SMALLINT     NULL,
+    oi_adicion     DECIMAL(3,1) NULL,
+    CONSTRAINT pk_receta PRIMARY KEY (id),
+    -- Una consulta genera cuando mucho una receta.
+    CONSTRAINT uq_receta_asiento UNIQUE (asiento_id),
+    -- El eje se expresa de 1 a 180 grados. El 0 no se usa: el meridiano
+    -- horizontal se anota como 180.
+    CONSTRAINT chk_receta_od_eje CHECK (od_eje BETWEEN 1 AND 180),
+    CONSTRAINT chk_receta_oi_eje CHECK (oi_eje BETWEEN 1 AND 180),
+    -- Un cilindro sin eje no define una corrección: si hay uno, debe haber el otro.
+    CONSTRAINT chk_receta_od_cilindro_eje
+        CHECK (od_cilindro IS NULL OR od_eje IS NOT NULL),
+    CONSTRAINT chk_receta_oi_cilindro_eje
+        CHECK (oi_cilindro IS NULL OR oi_eje IS NOT NULL),
+    -- CASCADE: la receta carece de sentido sin la consulta que la originó.
+    CONSTRAINT fk_receta_asiento
+        FOREIGN KEY (asiento_id) REFERENCES asiento_clinico (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'Graduación óptica emitida en una consulta';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">DATOS DE MUESTRA</p>
+          <p class="nota ">Los id se derivan de una etiqueta legible: UNHEX(MD5(&#x27;opt-01&#x27;)) da siempre los mismos 16 bytes, así las demos localizan registros conocidos con BIN_TO_UUID(UNHEX(MD5(&#x27;etiqueta&#x27;))). password_hash contiene valores ficticios con formato bcrypt.</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO optica (id, nombre) VALUES
+  (UNHEX(MD5('opt-01')), 'Óptica Visión Clara'),
+  (UNHEX(MD5('opt-02')), 'Óptica Mirada Jacona');</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO rol (id, nombre, descripcion) VALUES
+  (UNHEX(MD5('rol-01')), 'Administrador', 'Gestiona sucursales, usuarios y catálogos'),
+  (UNHEX(MD5('rol-02')), 'Optometrista',  'Registra consultas y emite recetas'),
+  (UNHEX(MD5('rol-03')), 'Recepción',     'Alta de pacientes y entrega de recetas');</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO sucursal (id, optica_id, nombre, direccion) VALUES
+  (UNHEX(MD5('suc-01')), UNHEX(MD5('opt-01')), 'Matriz Centro',       'Av. Madero 120, Col. Centro, Zamora'),
+  (UNHEX(MD5('suc-02')), UNHEX(MD5('opt-01')), 'Sucursal Jardinadas', 'Calle Amado Nervo 45, Col. Jardinadas, Zamora'),
+  (UNHEX(MD5('suc-03')), UNHEX(MD5('opt-01')), 'Sucursal Norte',      'Blvd. Lázaro Cárdenas 980, Zamora'),
+  (UNHEX(MD5('suc-04')), UNHEX(MD5('opt-02')), 'Matriz Jacona',       'Av. Independencia 33, Jacona');</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO usuario (id, optica_id, rol_id, nombre, correo, password_hash, activo) VALUES
+  (UNHEX(MD5('usr-01')), UNHEX(MD5('opt-01')), UNHEX(MD5('rol-01')),
+   'Laura Gómez Torres',     'laura.gomez@visionclara.mx',
+   '$2b$12$EjemploHashNoRealAdminLauraGomezTorres000000000000000', TRUE),
+  (UNHEX(MD5('usr-02')), UNHEX(MD5('opt-01')), UNHEX(MD5('rol-02')),
+   'Carlos Herrera Ruiz',    'carlos.herrera@visionclara.mx',
+   '$2b$12$EjemploHashNoRealOptoCarlosHerreraRuiz00000000000000', TRUE),
+  (UNHEX(MD5('usr-03')), UNHEX(MD5('opt-01')), UNHEX(MD5('rol-03')),
+   'Sofía Ramírez Díaz',     'sofia.ramirez@visionclara.mx',
+   '$2b$12$EjemploHashNoRealRecepSofiaRamirezDiaz00000000000000', TRUE),
+  -- Baja lógica: conserva su historial de consultas, pero no puede atender.
+  (UNHEX(MD5('usr-04')), UNHEX(MD5('opt-01')), UNHEX(MD5('rol-02')),
+   'Miguel Ángel Soto Vega', 'miguel.soto@visionclara.mx',
+   '$2b$12$EjemploHashNoRealOptoMiguelSotoVega0000000000000000', FALSE),
+  (UNHEX(MD5('usr-05')), UNHEX(MD5('opt-02')), UNHEX(MD5('rol-02')),
+   'Patricia Luna Méndez',   'patricia.luna@miradajacona.mx',
+   '$2b$12$EjemploHashNoRealOptoPatriciaLunaMendez000000000000', TRUE);</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO usuario_sucursal (usuario_id, sucursal_id) VALUES
+  (UNHEX(MD5('usr-01')), UNHEX(MD5('suc-01'))),
+  (UNHEX(MD5('usr-01')), UNHEX(MD5('suc-02'))),
+  (UNHEX(MD5('usr-01')), UNHEX(MD5('suc-03'))),
+  (UNHEX(MD5('usr-02')), UNHEX(MD5('suc-01'))),
+  (UNHEX(MD5('usr-02')), UNHEX(MD5('suc-02'))),
+  (UNHEX(MD5('usr-02')), UNHEX(MD5('suc-03'))),
+  (UNHEX(MD5('usr-03')), UNHEX(MD5('suc-01'))),
+  (UNHEX(MD5('usr-04')), UNHEX(MD5('suc-02'))),
+  (UNHEX(MD5('usr-05')), UNHEX(MD5('suc-04')));</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO paciente
+  (id, optica_id, nombre, fecha_nacimiento, sexo, telefono, correo, direccion)
+VALUES
+  (UNHEX(MD5('pac-01')), UNHEX(MD5('opt-01')), 'Juan Pérez López',      '1985-03-12', 'M',
+   '3511234567', 'juan.perez@correo.com',      'Calle Morelos 15, Zamora'),
+  (UNHEX(MD5('pac-02')), UNHEX(MD5('opt-01')), 'María Fernanda Ochoa',  '1992-07-25', 'F',
+   '3512345678', 'mafer.ochoa@correo.com',     NULL),
+  (UNHEX(MD5('pac-03')), UNHEX(MD5('opt-01')), 'Roberto Sánchez Mora',  '1958-11-02', 'M',
+   '3513456789', 'roberto.sanchez@correo.com', 'Av. Juárez 210, Zamora'),
+  (UNHEX(MD5('pac-04')), UNHEX(MD5('opt-01')), 'Ana Lucía Torres Gil',  '2010-01-30', 'F',
+   '3514567890', 'ana.torres@correo.com',      'Calle Hidalgo 8, Zamora'),
+  -- 'Juana' también empieza con 'Juan': útil para ver la búsqueda por prefijo.
+  (UNHEX(MD5('pac-05')), UNHEX(MD5('opt-01')), 'Juana Martínez Cruz',   '1970-09-18', 'F',
+   '3515678901', 'juana.martinez@correo.com',  NULL),
+  (UNHEX(MD5('pac-06')), UNHEX(MD5('opt-02')), 'Luis Alberto Rivas',    '1979-04-07', 'M',
+   '3516789012', 'luis.rivas@correo.com',      'Calle Allende 9, Jacona');</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">El consecutivo del folio es global, no por óptica (uq_expediente_folio).</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO expediente (id, paciente_id, fecha_creacion, folio) VALUES
+  (UNHEX(MD5('exp-01')), UNHEX(MD5('pac-01')), '2025-02-10', 'EXP-2025-0001'),
+  (UNHEX(MD5('exp-02')), UNHEX(MD5('pac-02')), '2025-06-03', 'EXP-2025-0002'),
+  (UNHEX(MD5('exp-03')), UNHEX(MD5('pac-03')), '2025-09-20', 'EXP-2025-0003'),
+  (UNHEX(MD5('exp-04')), UNHEX(MD5('pac-04')), '2026-03-05', 'EXP-2026-0001'),
+  (UNHEX(MD5('exp-05')), UNHEX(MD5('pac-05')), '2026-04-22', 'EXP-2026-0002'),
+  (UNHEX(MD5('exp-06')), UNHEX(MD5('pac-06')), '2026-05-10', 'EXP-2026-0003');</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO asiento_clinico
+  (id, expediente_id, usuario_id, sucursal_id, fecha,
+   sintomas, enfermedades, heredofamiliares, analisis_preliminar, observaciones)
+VALUES
+  (UNHEX(MD5('asi-01')), UNHEX(MD5('exp-01')), UNHEX(MD5('usr-02')), UNHEX(MD5('suc-01')), '2025-02-10',
+   'Visión borrosa de lejos', NULL, 'Padre con miopía', 'Miopía leve', 'Primera consulta'),
+  (UNHEX(MD5('asi-02')), UNHEX(MD5('exp-01')), UNHEX(MD5('usr-02')), UNHEX(MD5('suc-02')), '2026-02-15',
+   'Revisión anual', NULL, NULL, 'Miopía estable con astigmatismo leve', 'Cambio de graduación'),
+  (UNHEX(MD5('asi-03')), UNHEX(MD5('exp-02')), UNHEX(MD5('usr-02')), UNHEX(MD5('suc-01')), '2025-06-03',
+   'Dolor de cabeza al usar computadora', NULL, NULL, 'Astigmatismo', 'Uso de filtro de luz azul'),
+  (UNHEX(MD5('asi-04')), UNHEX(MD5('exp-03')), UNHEX(MD5('usr-02')), UNHEX(MD5('suc-02')), '2025-09-20',
+   'Dificultad para leer de cerca', 'Diabetes tipo 2', 'Madre con glaucoma', 'Presbicia', 'Se sugiere revisión de fondo de ojo'),
+  -- Atendido por usr-04 antes de su baja: el historial conserva la referencia.
+  (UNHEX(MD5('asi-05')), UNHEX(MD5('exp-03')), UNHEX(MD5('usr-04')), UNHEX(MD5('suc-02')), '2026-01-12',
+   'Seguimiento', 'Diabetes tipo 2', NULL, 'Presbicia progresiva', 'Aumenta adición'),
+  (UNHEX(MD5('asi-06')), UNHEX(MD5('exp-04')), UNHEX(MD5('usr-02')), UNHEX(MD5('suc-01')), '2026-03-05',
+   'No ve el pizarrón', NULL, 'Ambos padres con miopía', 'Miopía', 'Paciente menor de edad, acude con su madre'),
+  (UNHEX(MD5('asi-07')), UNHEX(MD5('exp-05')), UNHEX(MD5('usr-02')), UNHEX(MD5('suc-03')), '2026-04-22',
+   'Fatiga visual', 'Hipertensión', NULL, 'Hipermetropía y presbicia', NULL),
+  (UNHEX(MD5('asi-08')), UNHEX(MD5('exp-06')), UNHEX(MD5('usr-05')), UNHEX(MD5('suc-04')), '2026-05-10',
+   'Visión borrosa', NULL, NULL, 'Astigmatismo miópico', NULL),
+  -- Revisión de rutina sin corrección: asiento SIN receta (caso legítimo).
+  (UNHEX(MD5('asi-09')), UNHEX(MD5('exp-02')), UNHEX(MD5('usr-02')), UNHEX(MD5('suc-01')), '2026-06-18',
+   'Revisión de rutina', NULL, NULL, 'Graduación sin cambios', 'No se emite receta nueva');</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO receta
+  (id, asiento_id, fecha, material_mica, dip, altura,
+   od_esfera, od_cilindro, od_eje, od_adicion,
+   oi_esfera, oi_cilindro, oi_eje, oi_adicion)
+VALUES
+  (UNHEX(MD5('rec-01')), UNHEX(MD5('asi-01')), '2025-02-10', 'CR-39',          63.0, 21.0,
+   -1.25, NULL,  NULL, NULL,   -1.00, NULL,  NULL, NULL),
+  (UNHEX(MD5('rec-02')), UNHEX(MD5('asi-02')), '2026-02-15', 'Policarbonato',  63.0, 21.0,
+   -1.50, -0.50, 180,  NULL,   -1.25, -0.25, 170,  NULL),
+  (UNHEX(MD5('rec-03')), UNHEX(MD5('asi-03')), '2025-06-03', 'CR-39',          60.5, 19.5,
+   -0.25, -1.00,  90,  NULL,   -0.50, -0.75,  85,  NULL),
+  (UNHEX(MD5('rec-04')), UNHEX(MD5('asi-04')), '2025-09-20', 'Alto índice',    66.0, 22.0,
+    0.75, NULL,  NULL, 1.5,     0.50, NULL,  NULL, 1.5),
+  (UNHEX(MD5('rec-05')), UNHEX(MD5('asi-05')), '2026-01-14', 'Alto índice',    66.0, 22.0,
+    0.75, NULL,  NULL, 2.0,     0.75, NULL,  NULL, 2.0),
+  (UNHEX(MD5('rec-06')), UNHEX(MD5('asi-06')), '2026-03-05', 'Policarbonato',  56.0, 18.0,
+   -2.00, NULL,  NULL, NULL,   -2.25, NULL,  NULL, NULL),
+  (UNHEX(MD5('rec-07')), UNHEX(MD5('asi-07')), '2026-04-22', 'CR-39',          62.0, 20.0,
+    1.25, NULL,  NULL, 1.0,     1.50, NULL,  NULL, 1.0),
+  (UNHEX(MD5('rec-08')), UNHEX(MD5('asi-08')), '2026-05-10', 'Policarbonato',  64.0, 21.5,
+   -0.75, -1.25,  10,  NULL,   -1.00, -1.50, 175,  NULL);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">VERIFICACIÓN</p>
+          <p class="nota nota--esperado">Esperado: 9 tablas</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SHOW TABLES;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: 2 · 3 · 4 · 5 · 9 · 6 · 6 · 9 · 8</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT 'optica' AS tabla, COUNT(*) AS filas FROM optica UNION ALL
+SELECT 'rol',              COUNT(*) FROM rol              UNION ALL
+SELECT 'sucursal',         COUNT(*) FROM sucursal         UNION ALL
+SELECT 'usuario',          COUNT(*) FROM usuario          UNION ALL
+SELECT 'usuario_sucursal', COUNT(*) FROM usuario_sucursal UNION ALL
+SELECT 'paciente',         COUNT(*) FROM paciente         UNION ALL
+SELECT 'expediente',       COUNT(*) FROM expediente       UNION ALL
+SELECT 'asiento_clinico',  COUNT(*) FROM asiento_clinico  UNION ALL
+SELECT 'receta',           COUNT(*) FROM receta;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Llaves foráneas y su regla de borrado (RESTRICT protege el historial; CASCADE sólo donde el hijo no tiene sentido sin el padre)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT TABLE_NAME            AS tabla_hija,
+       REFERENCED_TABLE_NAME AS tabla_padre,
+       CONSTRAINT_NAME       AS restriccion,
+       DELETE_RULE           AS al_borrar
+FROM information_schema.REFERENTIAL_CONSTRAINTS
+WHERE CONSTRAINT_SCHEMA = 'optica_db'
+ORDER BY TABLE_NAME, CONSTRAINT_NAME;</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="P.2 · Variables de sesión y línea base">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">P.2</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Preparación</p>
+          <h2 class="demo__titulo">Variables de sesión y línea base</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Cargar los identificadores de los datos de muestra en variables <code>@</code> de la sesión.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Seleccionar los <code>SET</code> y ejecutarlos con <kbd>Alt</kbd>+<kbd>X</kbd>.</li>
+          <li>Ejecutar el conteo con <kbd>Ctrl</kbd>+<kbd>Enter</kbd>.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>6 pacientes · 6 expedientes · 9 asientos · 8 recetas · 1 sin receta</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [P.2]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">USE optica_db;</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SET @opt01 = BIN_TO_UUID(UNHEX(MD5('opt-01')));
+SET @suc01 = BIN_TO_UUID(UNHEX(MD5('suc-01')));
+SET @suc02 = BIN_TO_UUID(UNHEX(MD5('suc-02')));
+SET @suc04 = BIN_TO_UUID(UNHEX(MD5('suc-04')));
+SET @usr02 = BIN_TO_UUID(UNHEX(MD5('usr-02')));
+SET @usr03 = BIN_TO_UUID(UNHEX(MD5('usr-03')));
+SET @usr04 = BIN_TO_UUID(UNHEX(MD5('usr-04')));
+SET @pac01 = BIN_TO_UUID(UNHEX(MD5('pac-01')));</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: 6 pacientes, 6 expedientes, 9 asientos, 8 recetas, 1 sin receta</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT (SELECT COUNT(*) FROM paciente)        AS pacientes,
+       (SELECT COUNT(*) FROM expediente)      AS expedientes,
+       (SELECT COUNT(*) FROM asiento_clinico) AS asientos,
+       (SELECT COUNT(*) FROM receta)          AS recetas,
+       (SELECT COUNT(*) FROM asiento_clinico a
+          LEFT JOIN receta r ON r.asiento_id = a.id
+         WHERE r.id IS NULL)                  AS asientos_sin_receta;</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--seccion" data-titulo="01 · Procedimientos almacenados y transacciones">
+    <div class="seccion">
+      <span class="seccion__num anim" style="--d:0">01</span>
+      <div class="seccion__texto">
+        <p class="sobretitulo anim" style="--d:1">Actividad 3</p>
+        <h2 class="seccion__titulo anim" style="--d:2">Procedimientos almacenados y transacciones</h2>
+        <p class="seccion__desc anim" style="--d:3">Lógica dentro del servidor y operaciones que se ejecutan completas o no se ejecutan.</p>
+        <ol class="seccion__lista anim" style="--d:4">
+        <li><span>1.0</span>Creación de los procedimientos</li>
+        <li><span>1.1</span>Procedimientos sin transacción</li>
+        <li><span>1.2</span>Transacción: paciente + expediente</li>
+        <li><span>1.3</span>Atomicidad ante un dato inválido</li>
+        <li><span>1.4</span>Consulta con receta y reglas de negocio</li>
+        <li><span>1.5</span>Con transacción vs. sin transacción</li>
+        <li><span>1.6</span>SAVEPOINT: tolerar renglones inválidos</li>
+        <li><span>1.7</span>Concurrencia: SELECT … FOR UPDATE</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--procs" data-titulo="Procedimientos a crear">
+    <header class="encabezado encabezado--izq">
+      <p class="sobretitulo anim" style="--d:0">Actividad 3 · Procedimientos y transacciones</p>
+      <h2 class="encabezado__titulo anim" style="--d:1">7 procedimientos por crear</h2>
+      <p class="encabezado__texto anim" style="--d:1">
+        Todavía no existen en <code>optica_db</code>. El criterio para usar transacción:
+        <strong>¿cuántas escrituras deben verse como una sola operación?</strong>
+      </p>
+    </header>
+    <div class="procs">
+      <section class="procs__grupo procs__grupo--0">
+        <header class="procs__cab anim" style="--d:2">
+          <h3>Sin transacción</h3>
+          <p>Una sola escritura (o ninguna): InnoDB ya la hace atómica.</p>
+        </header>
+        <ol class="procs__lista">
+          <li class="proc anim" style="--d:3">
+            <div class="proc__cab">
+              <code class="proc__nombre">sp_buscar_paciente</code>
+              <span class="proc__demo">1.1</span>
+            </div>
+            <p class="proc__firma">(óptica, prefijo)</p>
+            <p class="proc__texto">Busca pacientes de una óptica por el inicio del nombre; devuelve edad y folio.</p>
+            <div class="chips"><span>SELECT</span><span>LIKE &#x27;x%&#x27;</span></div>
+          </li>
+          <li class="proc anim" style="--d:4">
+            <div class="proc__cab">
+              <code class="proc__nombre">sp_actualizar_contacto_paciente</code>
+              <span class="proc__demo">1.1</span>
+            </div>
+            <p class="proc__firma">(paciente, tel, correo, dir)</p>
+            <p class="proc__texto">Valida que el paciente exista y actualiza su contacto en un solo <code>UPDATE</code>.</p>
+            <div class="chips"><span>SIGNAL</span><span>UPDATE</span></div>
+          </li>
+          <li class="proc anim" style="--d:5">
+            <div class="proc__cab">
+              <code class="proc__nombre">sp_alta_sucursal</code>
+              <span class="proc__demo">1.1</span>
+            </div>
+            <p class="proc__firma">(óptica, nombre, dir, OUT id)</p>
+            <p class="proc__texto">Inserta una sucursal; la FK y el <code>UNIQUE</code> cuidan la integridad.</p>
+            <div class="chips"><span>INSERT</span><span>OUT</span></div>
+          </li>
+        </ol>
+      </section>
+      <section class="procs__grupo procs__grupo--1">
+        <header class="procs__cab anim" style="--d:2">
+          <h3>Con transacción</h3>
+          <p>Varias escrituras que deben verse como una sola operación.</p>
+        </header>
+        <ol class="procs__lista">
+          <li class="proc anim" style="--d:6">
+            <div class="proc__cab">
+              <code class="proc__nombre">sp_alta_paciente_con_expediente</code>
+              <span class="proc__demo">1.2 · 1.3 · 1.7</span>
+            </div>
+            <p class="proc__firma">(…, OUT paciente, OUT folio)</p>
+            <p class="proc__texto">Crea paciente y expediente juntos; calcula el folio consecutivo <code>EXP-AAAA-NNNN</code>.</p>
+            <div class="chips"><span>EXIT HANDLER</span><span>FOR UPDATE</span></div>
+          </li>
+          <li class="proc anim" style="--d:7">
+            <div class="proc__cab">
+              <code class="proc__nombre">sp_registrar_consulta</code>
+              <span class="proc__demo">1.4 · 1.5</span>
+            </div>
+            <p class="proc__firma">(expediente, usuario, sucursal, …)</p>
+            <p class="proc__texto">Asiento clínico y receta en bloque; valida tres reglas de negocio antes de escribir.</p>
+            <div class="chips"><span>SIGNAL</span><span>ROLLBACK</span></div>
+          </li>
+          <li class="proc anim" style="--d:8">
+            <div class="proc__cab">
+              <code class="proc__nombre">sp_reasignar_sucursales_usuario</code>
+              <span class="proc__demo">1.6</span>
+            </div>
+            <p class="proc__firma">(usuario, JSON, OUT asignadas, OUT omitidas)</p>
+            <p class="proc__texto">Reemplaza las sucursales de un usuario; descarta los renglones inválidos sin abortar.</p>
+            <div class="chips"><span>SAVEPOINT</span><span>JSON</span></div>
+          </li>
+        </ol>
+      </section>
+      <section class="procs__grupo procs__grupo--2">
+        <header class="procs__cab anim" style="--d:2">
+          <h3>De contraste</h3>
+          <p>Sólo para la demostración; no forma parte de la aplicación.</p>
+        </header>
+        <ol class="procs__lista">
+          <li class="proc anim" style="--d:9">
+            <div class="proc__cab">
+              <code class="proc__nombre">sp_registrar_consulta_sin_tx</code>
+              <span class="proc__demo">1.5</span>
+            </div>
+            <p class="proc__firma">(expediente, usuario, sucursal, …)</p>
+            <p class="proc__texto">La misma consulta sin transacción: si falla la receta, el asiento queda huérfano.</p>
+            <div class="chips"><span>autocommit</span></div>
+          </li>
+        </ol>
+      </section>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="1.0 · Creación de los procedimientos">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">1.0</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 3 · Procedimientos y transacciones</p>
+          <h2 class="demo__titulo">Creación de los procedimientos</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Crear los siete procedimientos. <code>DELIMITER $$</code> evita que los <code>;</code> del cuerpo corten el <code>CREATE PROCEDURE</code>.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li><b>Copiar todo</b> y pegarlo en un editor nuevo.</li>
+          <li>Ejecutar el bloque completo con <kbd>Alt</kbd>+<kbd>X</kbd>.</li>
+          <li>Verificar en <code>information_schema.ROUTINES</code>.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>7 procedimientos · 3 con <code>START TRANSACTION</code></span></li>
+          <li class="esperado esperado--aviso"><span class="esperado__icono">!</span><span><code>DELIMITER</code> lo interpreta el cliente (DBeaver o <code>mysql</code>); el servidor nunca lo recibe.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [1.0]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota ">Por si se repite la demo: borrar las versiones anteriores (Alt+X)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DROP PROCEDURE IF EXISTS sp_buscar_paciente;
+DROP PROCEDURE IF EXISTS sp_actualizar_contacto_paciente;
+DROP PROCEDURE IF EXISTS sp_alta_sucursal;
+DROP PROCEDURE IF EXISTS sp_alta_paciente_con_expediente;
+DROP PROCEDURE IF EXISTS sp_registrar_consulta;
+DROP PROCEDURE IF EXISTS sp_reasignar_sucursales_usuario;
+DROP PROCEDURE IF EXISTS sp_registrar_consulta_sin_tx;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Desde aquí el fin de sentencia es $$</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELIMITER $$</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">1/7 · sin TX · sólo lectura, búsqueda por prefijo</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE PROCEDURE sp_buscar_paciente(
+  IN p_optica_id CHAR(36),
+  IN p_nombre    VARCHAR(150)
+)
+COMMENT 'Consulta: pacientes de una optica cuyo nombre inicia con el texto dado'
+BEGIN
+  SELECT BIN_TO_UUID(p.id) AS paciente_id,
+         p.nombre,
+         p.fecha_nacimiento,
+         TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURRENT_DATE) AS edad,
+         p.sexo,
+         p.telefono,
+         p.correo,
+         e.folio
+  FROM paciente p
+  LEFT JOIN expediente e ON e.paciente_id = p.id
+  WHERE p.optica_id = UUID_TO_BIN(p_optica_id)
+    AND p.nombre LIKE CONCAT(p_nombre, '%')
+  ORDER BY p.nombre;
+END$$</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">2/7 · sin TX · validación previa + un solo UPDATE</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE PROCEDURE sp_actualizar_contacto_paciente(
+  IN p_paciente_id CHAR(36),
+  IN p_telefono    VARCHAR(20),
+  IN p_correo      VARCHAR(150),
+  IN p_direccion   VARCHAR(200)
+)
+COMMENT 'Actualiza datos de contacto del paciente (una sola sentencia UPDATE)'
+BEGIN
+  DECLARE v_paciente BINARY(16);
+  SET v_paciente = UUID_TO_BIN(p_paciente_id);
+  -- La validación precede a la única escritura del procedimiento.
+  IF NOT EXISTS (SELECT 1 FROM paciente WHERE id = v_paciente) THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'El paciente indicado no existe';
+  END IF;
+  UPDATE paciente
+     SET telefono  = p_telefono,
+         correo    = p_correo,
+         direccion = p_direccion
+   WHERE id = v_paciente;
+END$$</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">3/7 · sin TX · un solo INSERT, id en parámetro OUT</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE PROCEDURE sp_alta_sucursal(
+  IN  p_optica_id   CHAR(36),
+  IN  p_nombre      VARCHAR(150),
+  IN  p_direccion   VARCHAR(200),
+  OUT p_sucursal_id CHAR(36)
+)
+COMMENT 'Alta de sucursal; la integridad la garantizan la FK y el UNIQUE'
+BEGIN
+  DECLARE v_sucursal BINARY(16);
+  SET v_sucursal = UUID_TO_BIN(UUID(), 1);
+  INSERT INTO sucursal (id, optica_id, nombre, direccion)
+  VALUES (v_sucursal, UUID_TO_BIN(p_optica_id), p_nombre, p_direccion);
+  SET p_sucursal_id = BIN_TO_UUID(v_sucursal);
+END$$</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">4/7 · con TX · paciente + expediente, folio con FOR UPDATE</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE PROCEDURE sp_alta_paciente_con_expediente(
+  IN  p_optica_id        CHAR(36),
+  IN  p_nombre           VARCHAR(150),
+  IN  p_fecha_nacimiento DATE,
+  IN  p_sexo             CHAR(1),
+  IN  p_telefono         VARCHAR(20),
+  IN  p_correo           VARCHAR(150),
+  IN  p_direccion        VARCHAR(200),
+  OUT p_paciente_id      CHAR(36),
+  OUT p_folio            VARCHAR(20)
+)
+COMMENT 'Alta de paciente y apertura de expediente en una sola transaccion'
+BEGIN
+  DECLARE v_paciente   BINARY(16);
+  DECLARE v_expediente BINARY(16);
+  DECLARE v_anio       CHAR(4);
+  DECLARE v_consec     INT;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    RESIGNAL;
+  END;
+  SET v_paciente   = UUID_TO_BIN(UUID(), 1);
+  SET v_expediente = UUID_TO_BIN(UUID(), 1);
+  SET v_anio       = DATE_FORMAT(CURRENT_DATE, '%Y');
+  START TRANSACTION;
+    -- Consecutivo del año en curso. En 'EXP-2026-0007' la numeración
+    -- empieza en la posición 10.
+    SELECT COALESCE(MAX(CAST(SUBSTRING(folio, 10) AS UNSIGNED)), 0) + 1
+      INTO v_consec
+      FROM expediente
+     WHERE folio LIKE CONCAT('EXP-', v_anio, '-%')
+     FOR UPDATE;
+    SET p_folio = CONCAT('EXP-', v_anio, '-', LPAD(v_consec, 4, '0'));
+    INSERT INTO paciente
+      (id, optica_id, nombre, fecha_nacimiento, sexo, telefono, correo, direccion)
+    VALUES
+      (v_paciente, UUID_TO_BIN(p_optica_id), p_nombre, p_fecha_nacimiento,
+       p_sexo, p_telefono, p_correo, p_direccion);
+    INSERT INTO expediente (id, paciente_id, fecha_creacion, folio)
+    VALUES (v_expediente, v_paciente, CURRENT_DATE, p_folio);
+  COMMIT;
+  SET p_paciente_id = BIN_TO_UUID(v_paciente);
+END$$</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">5/7 · con TX · asiento + receta, tres reglas de negocio</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE PROCEDURE sp_registrar_consulta(
+  IN  p_expediente_id    CHAR(36),
+  IN  p_usuario_id       CHAR(36),
+  IN  p_sucursal_id      CHAR(36),
+  IN  p_sintomas         TEXT,
+  IN  p_enfermedades     TEXT,
+  IN  p_heredofamiliares TEXT,
+  IN  p_analisis         TEXT,
+  IN  p_observaciones    TEXT,
+  IN  p_material_mica    VARCHAR(100),
+  IN  p_dip              DECIMAL(4,1),
+  IN  p_altura           DECIMAL(4,1),
+  IN  p_od_esfera        DECIMAL(4,2),
+  IN  p_od_cilindro      DECIMAL(4,2),
+  IN  p_od_eje           SMALLINT,
+  IN  p_od_adicion       DECIMAL(3,1),
+  IN  p_oi_esfera        DECIMAL(4,2),
+  IN  p_oi_cilindro      DECIMAL(4,2),
+  IN  p_oi_eje           SMALLINT,
+  IN  p_oi_adicion       DECIMAL(3,1),
+  OUT p_asiento_id       CHAR(36),
+  OUT p_receta_id        CHAR(36)
+)
+COMMENT 'Registra consulta y receta de forma atomica'
+BEGIN
+  DECLARE v_expediente BINARY(16);
+  DECLARE v_usuario    BINARY(16);
+  DECLARE v_sucursal   BINARY(16);
+  DECLARE v_asiento    BINARY(16);
+  DECLARE v_receta     BINARY(16);
+  DECLARE v_optica_pac BINARY(16);
+  DECLARE v_optica_suc BINARY(16);
+  DECLARE v_activo     BOOLEAN;
+  DECLARE v_con_receta BOOLEAN;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    RESIGNAL;
+  END;
+  SET v_expediente = UUID_TO_BIN(p_expediente_id);
+  SET v_usuario    = UUID_TO_BIN(p_usuario_id);
+  SET v_sucursal   = UUID_TO_BIN(p_sucursal_id);
+  SET v_asiento    = UUID_TO_BIN(UUID(), 1);
+  -- Hay receta cuando se capturó graduación de al menos un ojo.
+  SET v_con_receta = (p_od_esfera IS NOT NULL OR p_oi_esfera IS NOT NULL);
+  START TRANSACTION;
+    -- Regla 1: el expediente debe existir.
+    SELECT p.optica_id
+      INTO v_optica_pac
+      FROM expediente e
+      JOIN paciente   p ON p.id = e.paciente_id
+     WHERE e.id = v_expediente;
+    IF v_optica_pac IS NULL THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El expediente indicado no existe';
+    END IF;
+    -- Regla 2: quien atiende debe ser una cuenta activa.
+    SELECT activo INTO v_activo FROM usuario WHERE id = v_usuario;
+    IF v_activo IS NULL OR v_activo = FALSE THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El usuario no existe o esta dado de baja';
+    END IF;
+    -- Regla 3: la sucursal debe pertenecer a la óptica del paciente.
+    -- Ninguna llave foránea puede expresar esta condición, porque
+    -- relaciona dos ramas distintas del modelo.
+    SELECT optica_id INTO v_optica_suc FROM sucursal WHERE id = v_sucursal;
+    IF v_optica_suc IS NULL OR v_optica_suc &lt;&gt; v_optica_pac THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'La sucursal no pertenece a la optica del paciente';
+    END IF;
+    INSERT INTO asiento_clinico
+      (id, expediente_id, usuario_id, sucursal_id, fecha,
+       sintomas, enfermedades, heredofamiliares,
+       analisis_preliminar, observaciones)
+    VALUES
+      (v_asiento, v_expediente, v_usuario, v_sucursal, CURRENT_DATE,
+       p_sintomas, p_enfermedades, p_heredofamiliares,
+       p_analisis, p_observaciones);
+    IF v_con_receta THEN
+      SET v_receta = UUID_TO_BIN(UUID(), 1);
+      INSERT INTO receta
+        (id, asiento_id, fecha, material_mica, dip, altura,
+         od_esfera, od_cilindro, od_eje, od_adicion,
+         oi_esfera, oi_cilindro, oi_eje, oi_adicion)
+      VALUES
+        (v_receta, v_asiento, CURRENT_DATE, p_material_mica, p_dip, p_altura,
+         p_od_esfera, p_od_cilindro, p_od_eje, p_od_adicion,
+         p_oi_esfera, p_oi_cilindro, p_oi_eje, p_oi_adicion);
+      SET p_receta_id = BIN_TO_UUID(v_receta);
+    ELSE
+      SET p_receta_id = NULL;
+    END IF;
+  COMMIT;
+  SET p_asiento_id = BIN_TO_UUID(v_asiento);
+END$$</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">6/7 · con TX · SAVEPOINT por renglón</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE PROCEDURE sp_reasignar_sucursales_usuario(
+  IN  p_usuario_id CHAR(36),
+  IN  p_sucursales JSON,
+  OUT p_asignadas  INT,
+  OUT p_omitidas   INT
+)
+COMMENT 'Reasigna sucursales usando SAVEPOINT para tolerar renglones invalidos'
+BEGIN
+  DECLARE v_usuario  BINARY(16);
+  DECLARE v_sucursal BINARY(16);
+  DECLARE v_total    INT;
+  DECLARE v_i        INT DEFAULT 0;
+  DECLARE v_error    INT DEFAULT 0;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    RESIGNAL;
+  END;
+  SET v_usuario   = UUID_TO_BIN(p_usuario_id);
+  SET v_total     = COALESCE(JSON_LENGTH(p_sucursales), 0);
+  SET p_asignadas = 0;
+  SET p_omitidas  = 0;
+  START TRANSACTION;
+    IF NOT EXISTS (SELECT 1 FROM usuario WHERE id = v_usuario) THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El usuario indicado no existe';
+    END IF;
+    DELETE FROM usuario_sucursal WHERE usuario_id = v_usuario;
+    WHILE v_i &lt; v_total DO
+      SET v_error = 0;
+      SAVEPOINT sp_renglon;
+      -- Bloque anidado con su propio manejador: atrapa el error de
+      -- este renglón sin abortar el procedimiento completo.
+      BEGIN
+        DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET v_error = 1;
+        SET v_sucursal = UUID_TO_BIN(
+              JSON_UNQUOTE(JSON_EXTRACT(p_sucursales, CONCAT('$[', v_i, ']'))));
+        INSERT INTO usuario_sucursal (usuario_id, sucursal_id)
+        VALUES (v_usuario, v_sucursal);
+      END;
+      IF v_error = 1 THEN
+        ROLLBACK TO SAVEPOINT sp_renglon;
+        SET p_omitidas = p_omitidas + 1;
+      ELSE
+        SET p_asignadas = p_asignadas + 1;
+      END IF;
+      SET v_i = v_i + 1;
+    END WHILE;
+    IF p_asignadas = 0 THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ninguna sucursal de la lista resulto valida';
+    END IF;
+  COMMIT;
+END$$</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">7/7 · contraste · misma consulta SIN transacción</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE PROCEDURE sp_registrar_consulta_sin_tx(
+  IN p_expediente_id CHAR(36),
+  IN p_usuario_id    CHAR(36),
+  IN p_sucursal_id   CHAR(36),
+  IN p_analisis      TEXT,
+  IN p_od_esfera     DECIMAL(4,2),
+  IN p_od_eje        SMALLINT
+)
+COMMENT 'DEMOSTRATIVO: misma operacion sin transaccion. No usar en produccion'
+BEGIN
+  DECLARE v_asiento BINARY(16);
+  DECLARE v_receta  BINARY(16);
+  SET v_asiento = UUID_TO_BIN(UUID(), 1);
+  SET v_receta  = UUID_TO_BIN(UUID(), 1);
+  INSERT INTO asiento_clinico
+    (id, expediente_id, usuario_id, sucursal_id, fecha, analisis_preliminar)
+  VALUES
+    (v_asiento, UUID_TO_BIN(p_expediente_id), UUID_TO_BIN(p_usuario_id),
+     UUID_TO_BIN(p_sucursal_id), CURRENT_DATE, p_analisis);
+  INSERT INTO receta (id, asiento_id, fecha, od_esfera, od_eje)
+  VALUES (v_receta, v_asiento, CURRENT_DATE, p_od_esfera, p_od_eje);
+END$$</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">De vuelta al &#x27;;&#x27; normal</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELIMITER ;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: 7 procedimientos, 3 con START TRANSACTION (con_tx = 1)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT ROUTINE_NAME AS procedimiento,
+       ROUTINE_DEFINITION LIKE '%START TRANSACTION%' AS con_tx,
+       ROUTINE_COMMENT AS descripcion
+FROM information_schema.ROUTINES
+WHERE ROUTINE_SCHEMA = 'optica_db' AND ROUTINE_TYPE = 'PROCEDURE'
+ORDER BY CREATED;</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="1.1 · Procedimientos sin transacción">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">1.1</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 3 · Procedimientos y transacciones</p>
+          <h2 class="demo__titulo">Procedimientos sin transacción</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Con una sola escritura, InnoDB ya garantiza la atomicidad: <code>START TRANSACTION</code> no aporta nada.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Búsqueda por prefijo con <code>sp_buscar_paciente</code>.</li>
+          <li>Actualizar el contacto y comprobarlo con un <code>SELECT</code>.</li>
+          <li>Alta de sucursal y lectura del parámetro <code>OUT</code>.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Juan Pérez López y Juana Martínez Cruz, con edad y folio.</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span><code>@suc_nueva</code> devuelve el UUID generado.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [1.1]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota ">Consulta por prefijo: devuelve Juan Pérez y Juana Martínez</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_buscar_paciente(@opt01, 'Juan');</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Un solo UPDATE, con validación previa</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_actualizar_contacto_paciente(
+  @pac01, '3511234567', 'juan.perez@correo.com',
+  'Calle Morelos 15, Col. Centro, Zamora');</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT nombre, telefono, correo, direccion
+FROM paciente WHERE id = UUID_TO_BIN(@pac01);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Un solo INSERT; el id generado regresa en el parámetro OUT</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_alta_sucursal(
+  @opt01, 'Sucursal Poniente', 'Av. Juárez 500, Zamora', @suc_nueva);</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT @suc_nueva AS sucursal_id;</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="1.2 · Transacción: paciente + expediente">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">1.2</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 3 · Procedimientos y transacciones</p>
+          <h2 class="demo__titulo">Transacción: paciente + expediente</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Paciente y expediente se crean juntos o ninguno; el folio consecutivo se calcula con <code>FOR UPDATE</code>.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Ejecutar el <code>CALL</code>.</li>
+          <li>Leer los parámetros <code>OUT</code>.</li>
+          <li>Guardar <code>@exp_rosa</code>: lo usan las demos siguientes.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Folio <code>EXP-2026-0004</code></span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [1.2]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_alta_paciente_con_expediente(
+  @opt01, 'Rosa Medina Alcaraz', '1990-05-14', 'F',
+  '3519876543', 'rosa.medina@correo.com', 'Calle Allende 22, Zamora',
+  @pac_rosa, @folio_rosa);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: folio EXP-2026-0004 (siguiente del año en curso)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT @pac_rosa AS paciente_id, @folio_rosa AS folio;</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SET @exp_rosa = (SELECT BIN_TO_UUID(id) FROM expediente
+                  WHERE paciente_id = UUID_TO_BIN(@pac_rosa));</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="1.3 · Atomicidad ante un dato inválido">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">1.3</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 3 · Procedimientos y transacciones</p>
+          <h2 class="demo__titulo">Atomicidad ante un dato inválido</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Falla un <code>CHECK</code>; el <code>EXIT HANDLER</code> hace <code>ROLLBACK</code> y <code>RESIGNAL</code>.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Conteo antes.</li>
+          <li><code>CALL</code> con un correo sin arroba.</li>
+          <li>Conteo después.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--error"><span class="esperado__icono">✖</span><span>Error 3819 · <code>chk_paciente_correo</code></span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>7 / 7 antes y después: no queda rastro.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [1.3]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota ">Antes: 7 pacientes, 7 expedientes</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT (SELECT COUNT(*) FROM paciente)   AS pacientes,
+       (SELECT COUNT(*) FROM expediente) AS expedientes;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">ERROR ESPERADO 3819: Check constraint &#x27;chk_paciente_correo&#x27; is violated</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_alta_paciente_con_expediente(
+  @opt01, 'Prueba Correo Invalido', '1990-01-01', 'M',
+  '3510000000', 'correo-sin-arroba', NULL, @p_tmp, @f_tmp);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Después: los mismos 7 y 7</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT (SELECT COUNT(*) FROM paciente)   AS pacientes,
+       (SELECT COUNT(*) FROM expediente) AS expedientes;</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="1.4 · Consulta con receta y reglas de negocio">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">1.4</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 3 · Procedimientos y transacciones</p>
+          <h2 class="demo__titulo">Consulta con receta y reglas de negocio</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Reglas que ninguna llave foránea puede expresar, validadas con <code>SIGNAL</code> dentro de la transacción.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Consulta válida: asiento y receta en una sola transacción.</li>
+          <li>Sucursal que pertenece a otra óptica.</li>
+          <li>Optometrista dado de baja.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Se devuelven <code>asiento_id</code> y <code>receta_id</code>.</span></li>
+          <li class="esperado esperado--error"><span class="esperado__icono">✖</span><span>Error 1644 (dos veces), con el mensaje de cada regla.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [1.4]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota ">Caso válido: asiento + receta en una transacción</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_registrar_consulta(
+  @exp_rosa, @usr02, @suc01,
+  'Cansancio visual al leer', NULL, 'Madre con astigmatismo',
+  'Astigmatismo leve', 'Primera consulta',
+  'CR-39', 61.0, 20.5,
+  -0.50, -0.75,  90, NULL,
+  -0.75, -0.50,  85, NULL,
+  @asiento_rosa, @receta_rosa);</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT @asiento_rosa AS asiento_id, @receta_rosa AS receta_id;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">ERROR ESPERADO 1644: La sucursal no pertenece a la optica del paciente (suc-04 es de opt-02; Rosa es de opt-01)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_registrar_consulta(
+  @exp_rosa, @usr02, @suc04,
+  NULL, NULL, NULL, 'Prueba de optica cruzada', NULL,
+  NULL, NULL, NULL,
+  -1.00, NULL, NULL, NULL, -1.00, NULL, NULL, NULL,
+  @a_tmp, @r_tmp);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">ERROR ESPERADO 1644: El usuario no existe o esta dado de baja (usr-04 tiene activo = FALSE)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_registrar_consulta(
+  @exp_rosa, @usr04, @suc01,
+  NULL, NULL, NULL, 'Prueba de usuario inactivo', NULL,
+  NULL, NULL, NULL,
+  -1.00, NULL, NULL, NULL, -1.00, NULL, NULL, NULL,
+  @a_tmp, @r_tmp);</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="1.5 · Con transacción vs. sin transacción">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">1.5</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 3 · Procedimientos y transacciones</p>
+          <h2 class="demo__titulo">Con transacción vs. sin transacción</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Mismo error, dos resultados: sin transacción queda un asiento huérfano; con transacción no queda nada.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Conteo inicial.</li>
+          <li>Versión <code>_sin_tx</code> → error → conteo.</li>
+          <li>Versión transaccional → mismo error → conteo.</li>
+          <li>Borrar a mano el renglón huérfano.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Inicio: 10 asientos · 9 recetas · 1 sin receta</span></li>
+          <li class="esperado esperado--error"><span class="esperado__icono">✖</span><span>Sin TX: 11 · 9 · <strong>2</strong> sin receta (quedó basura).</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Con TX: siguen 11 · 9 · 2. Ningún cambio.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [1.5]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota nota--esperado">Estado inicial. Esperado: 10 asientos, 9 recetas, 1 sin receta</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT COUNT(*) AS asientos,
+       (SELECT COUNT(*) FROM receta) AS recetas,
+       (SELECT COUNT(*) FROM asiento_clinico a
+          LEFT JOIN receta r ON r.asiento_id = a.id
+         WHERE r.id IS NULL) AS asientos_sin_receta
+FROM asiento_clinico;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">SIN transacción · ERROR ESPERADO 3819 (chk_receta_od_eje)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_registrar_consulta_sin_tx(
+  @exp_rosa, @usr02, @suc01, 'Prueba sin transaccion', -1.00, 200);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: 11 asientos, 9 recetas, 2 sin receta  &lt;- quedó basura</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT COUNT(*) AS asientos,
+       (SELECT COUNT(*) FROM receta) AS recetas,
+       (SELECT COUNT(*) FROM asiento_clinico a
+          LEFT JOIN receta r ON r.asiento_id = a.id
+         WHERE r.id IS NULL) AS asientos_sin_receta
+FROM asiento_clinico;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">CON transacción, mismo error · ERROR ESPERADO 3819 (chk_receta_od_eje)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_registrar_consulta(
+  @exp_rosa, @usr02, @suc01,
+  NULL, NULL, NULL, 'Prueba con transaccion', NULL,
+  'CR-39', 61.0, 20.5,
+  -1.00, NULL, 200, NULL,
+  -1.00, NULL,  90, NULL,
+  @a_tmp, @r_tmp);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: los mismos 11 / 9 / 2  &lt;- la transacción no dejó rastro</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT COUNT(*) AS asientos,
+       (SELECT COUNT(*) FROM receta) AS recetas,
+       (SELECT COUNT(*) FROM asiento_clinico a
+          LEFT JOIN receta r ON r.asiento_id = a.id
+         WHERE r.id IS NULL) AS asientos_sin_receta
+FROM asiento_clinico;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">El renglón huérfano hay que buscarlo y borrarlo a mano</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE FROM asiento_clinico
+ WHERE analisis_preliminar = 'Prueba sin transaccion'
+   AND NOT EXISTS (SELECT 1 FROM receta r WHERE r.asiento_id = asiento_clinico.id);</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="1.6 · SAVEPOINT: tolerar renglones inválidos">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">1.6</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 3 · Procedimientos y transacciones</p>
+          <h2 class="demo__titulo">SAVEPOINT: tolerar renglones inválidos</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Un <code>SAVEPOINT</code> por renglón: se descarta el inválido sin abortar la operación completa.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li><code>CALL</code> con dos sucursales válidas y un id inexistente.</li>
+          <li>Leer los contadores <code>OUT</code>.</li>
+          <li>Consultar las sucursales asignadas.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>asignadas = 2 · omitidas = 1</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Matriz Centro y Sucursal Jardinadas</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [1.6]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_reasignar_sucursales_usuario(
+  @usr03,
+  JSON_ARRAY(@suc01, @suc02, '00000000-0000-0000-0000-000000000000'),
+  @asignadas, @omitidas);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: asignadas = 2, omitidas = 1</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT @asignadas AS asignadas, @omitidas AS omitidas;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: Matriz Centro y Sucursal Jardinadas</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT s.nombre AS sucursal_asignada
+FROM usuario_sucursal us
+JOIN sucursal s ON s.id = us.sucursal_id
+WHERE us.usuario_id = UUID_TO_BIN(@usr03);</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="1.7 · Concurrencia: SELECT … FOR UPDATE">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">1.7</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 3 · Procedimientos y transacciones</p>
+          <h2 class="demo__titulo">Concurrencia: SELECT … FOR UPDATE</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>2 editores root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo"><code>FOR UPDATE</code> serializa el cálculo del folio: dos altas simultáneas no obtienen el mismo número.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Editor A: <code>START TRANSACTION</code> y lectura con <code>FOR UPDATE</code>.</li>
+          <li>Editor B: <code>CALL</code> → queda en espera.</li>
+          <li>Editor A: <code>COMMIT</code>.</li>
+          <li>Editor B: leer el folio.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>B se desbloquea en cuanto A confirma.</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Folio <code>EXP-2026-0005</code>, sin error 1062.</span></li>
+          <li class="esperado esperado--aviso"><span class="esperado__icono">!</span><span>Hacerlo ágil: <code>innodb_lock_wait_timeout</code> es de 50 s.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [1.7]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota nota--sesion">SESIÓN A (editor 1) · paso 1: toma el bloqueo del rango de folios</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">START TRANSACTION;</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT COALESCE(MAX(CAST(SUBSTRING(folio, 10) AS UNSIGNED)), 0) + 1 AS siguiente
+  FROM expediente
+ WHERE folio LIKE 'EXP-2026-%'
+ FOR UPDATE;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">SESIÓN B (editor 2) · paso 2: queda EN ESPERA (reloj girando)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_alta_paciente_con_expediente(
+  BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Prueba Concurrencia', '1995-02-02', 'M',
+  '3510000002', 'concurrencia@correo.com', NULL, @pac_b, @folio_b);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">SESIÓN A · paso 3: libera el bloqueo; B termina de inmediato</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">COMMIT;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">SESIÓN B · paso 4. Esperado: EXP-2026-0005, sin duplicado</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT @folio_b AS folio;</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--seccion" data-titulo="02 · Seguridad: roles y usuarios">
+    <div class="seccion">
+      <span class="seccion__num anim" style="--d:0">02</span>
+      <div class="seccion__texto">
+        <p class="sobretitulo anim" style="--d:1">Actividad 4</p>
+        <h2 class="seccion__titulo anim" style="--d:2">Seguridad: roles y usuarios</h2>
+        <p class="seccion__desc anim" style="--d:3">Cada cuenta accede sólo a lo que su función requiere. Se prueba entrando con cada usuario.</p>
+        <ol class="seccion__lista anim" style="--d:4">
+        <li><span>2.1</span>Inventario de roles, permisos y políticas</li>
+        <li><span>2.2</span>Recepción: lo permitido y lo negado</li>
+        <li><span>2.3</span>Optometrista y auditor</li>
+        <li><span>2.4</span>GRANT / REVOKE en vivo</li>
+        <li><span>2.5</span>Opcional · bloqueo por intentos fallidos</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="2.1 · Inventario de roles, permisos y políticas">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">2.1</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 4 · Seguridad: roles y usuarios</p>
+          <h2 class="demo__titulo">Inventario de roles, permisos y políticas</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Cada usuario hereda sus permisos de un rol; las políticas de contraseña son por cuenta.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Rol otorgado vs. rol activo (<code>role_edges</code> / <code>default_roles</code>).</li>
+          <li><code>SHOW GRANTS … USING</code>: permisos efectivos.</li>
+          <li>Políticas en <code>mysql.user</code>.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>5 usuarios, cada uno con su rol activo por defecto.</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Expira a 90 días · historial 5 · bloqueo tras 5 intentos.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [2.1]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota ">Qué rol tiene cada usuario, y cuál queda activo por defecto</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT re.TO_USER   AS usuario,
+       re.FROM_USER AS rol_otorgado,
+       dr.DEFAULT_ROLE_USER AS rol_activo_por_defecto
+FROM mysql.role_edges re
+LEFT JOIN mysql.default_roles dr
+  ON dr.USER = re.TO_USER AND dr.HOST = re.TO_HOST
+WHERE re.TO_USER LIKE 'usr\_%'
+ORDER BY usuario;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Permisos efectivos de un usuario a través de su rol</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SHOW GRANTS FOR 'usr_recepcion1'@'localhost' USING 'rol_recepcion';</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SHOW GRANTS FOR 'usr_optometrista1'@'localhost' USING 'rol_optometrista';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Políticas de contraseña y bloqueo de cada cuenta</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT user, host, password_lifetime, password_reuse_history,
+       User_attributes-&gt;&gt;'$.Password_locking.failed_login_attempts'   AS intentos_fallidos,
+       User_attributes-&gt;&gt;'$.Password_locking.password_lock_time_days' AS dias_bloqueo,
+       account_locked
+FROM mysql.user
+WHERE user LIKE 'usr\_%'
+ORDER BY user;</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="2.2 · Recepción: lo permitido y lo negado">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">2.2</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 4 · Seguridad: roles y usuarios</p>
+          <h2 class="demo__titulo">Recepción: lo permitido y lo negado</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>usr_recepcion1</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Menor privilegio: recepción gestiona pacientes, pero no ve información clínica ni contraseñas.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Confirmar usuario y rol activos.</li>
+          <li>Lo permitido: el procedimiento y las columnas autorizadas.</li>
+          <li>Lo negado: columna, tabla y operación.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span><code>CALL</code> y <code>SELECT id, nombre</code> funcionan.</span></li>
+          <li class="esperado esperado--error"><span class="esperado__icono">✖</span><span>1143 <code>password_hash</code> · 1142 <code>asiento_clinico</code> · 1142 <code>DELETE</code></span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [2.2]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT CURRENT_USER(), CURRENT_ROLE();</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--ok">OK: tiene EXECUTE sobre el procedimiento</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_buscar_paciente(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Juan');</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--ok">OK: columnas permitidas de usuario</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT BIN_TO_UUID(id) AS id, nombre FROM usuario;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">ERROR ESPERADO 1143: column &#x27;password_hash&#x27; denegada</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT nombre, password_hash FROM usuario;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">ERROR ESPERADO 1142: recepción no ve información clínica</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT * FROM asiento_clinico;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">ERROR ESPERADO 1142: no puede borrar pacientes</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE FROM paciente WHERE nombre = 'Juan Pérez López';</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="2.3 · Optometrista y auditor">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">2.3</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 4 · Seguridad: roles y usuarios</p>
+          <h2 class="demo__titulo">Optometrista y auditor</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>usr_optometrista1 · usr_auditor</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">El historial clínico es inmutable y el auditor sólo lee.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Como optometrista: leer, intentar borrar recetas, intentar editar un paciente.</li>
+          <li>Como auditor: leer e intentar ejecutar un procedimiento de alta.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Los <code>SELECT</code> funcionan.</span></li>
+          <li class="esperado esperado--error"><span class="esperado__icono">✖</span><span>1142 en <code>DELETE</code> y <code>UPDATE</code> · 1370 en <code>CALL</code></span></li>
+          <li class="esperado esperado--aviso"><span class="esperado__icono">!</span><span><code>usr_auditor</code> admite 2 conexiones: si aparece 1203, en DBeaver desactivar «conexión separada para metadatos».</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [2.3]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota nota--sesion">como usr_optometrista1</p>
+          <p class="nota nota--ok">OK: lee y crea recetas</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT COUNT(*) AS recetas FROM receta;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">ERROR ESPERADO 1142: el historial clínico no se borra (WHERE acotado por si se ejecuta por error con root)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE FROM receta WHERE asiento_id = UNHEX(MD5('asi-01'));</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">ERROR ESPERADO 1142: los datos de contacto son de recepción</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">UPDATE paciente SET telefono = '0000000000' WHERE id = UNHEX(MD5('pac-01'));</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--sesion">como usr_auditor</p>
+          <p class="nota nota--ok">OK: sólo lectura sobre todo el esquema</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT COUNT(*) AS asientos FROM asiento_clinico;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">ERROR ESPERADO 1370: execute command denied (no tiene EXECUTE)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_alta_sucursal(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Prueba Auditor', 'X', @x);</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="2.4 · GRANT / REVOKE en vivo">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">2.4</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 4 · Seguridad: roles y usuarios</p>
+          <h2 class="demo__titulo">GRANT / REVOKE en vivo</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root ↔ usr_auditor</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Se administran roles, no personas: un <code>REVOKE</code> al rol afecta a todos sus usuarios.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>root: <code>REVOKE EXECUTE</code> al rol.</li>
+          <li>auditor: el <code>CALL</code> ahora falla.</li>
+          <li>root: <code>GRANT</code> de vuelta.</li>
+          <li>auditor: funciona otra vez.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--error"><span class="esperado__icono">✖</span><span>1370 tras el <code>REVOKE</code></span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Resultado normal tras el <code>GRANT</code></span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [2.4]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota ">root</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">REVOKE EXECUTE ON PROCEDURE optica_db.sp_buscar_paciente FROM 'rol_auditor';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">usr_auditor · ERROR ESPERADO 1370 (si no cambia, reconectar)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_buscar_paciente(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Juan');</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">root · se restituye</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">GRANT EXECUTE ON PROCEDURE optica_db.sp_buscar_paciente TO 'rol_auditor';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">usr_auditor · OK de nuevo</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_buscar_paciente(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Juan');</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="2.5 · Opcional · bloqueo por intentos fallidos">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">2.5</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 4 · Seguridad: roles y usuarios</p>
+          <h2 class="demo__titulo">Opcional · bloqueo por intentos fallidos</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root + TERMINAL</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo"><code>FAILED_LOGIN_ATTEMPTS</code> bloquea la cuenta aunque después se use la contraseña correcta.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Crear una cuenta desechable (3 intentos).</li>
+          <li>Tres accesos con contraseña incorrecta.</li>
+          <li>Cuarto acceso con la correcta.</li>
+          <li>Desbloquear y eliminar la cuenta.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--error"><span class="esperado__icono">✖</span><span>Error 3955 · <em>Account is blocked … 3 consecutive failed logins</em></span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span><code>ACCOUNT UNLOCK</code> la libera.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [2.5]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota ">root</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CREATE USER IF NOT EXISTS 'usr_demo_bloqueo'@'localhost'
+  IDENTIFIED BY 'Demo#Bloqueo_2026'
+  FAILED_LOGIN_ATTEMPTS 3 PASSWORD_LOCK_TIME 1;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--terminal">TERMINAL · tres intentos con contraseña incorrecta (ERROR 1045)</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec -it mysql-optica mysql -u usr_demo_bloqueo -pIncorrecta</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">TERMINAL · cuarto intento, contraseña CORRECTA: ERROR ESPERADO 3955 &quot;Account is blocked for 1 day(s) ... due to 3 consecutive failed logins&quot;</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec -it mysql-optica mysql -u usr_demo_bloqueo -p</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">root · desbloqueo administrativo y retiro de la cuenta</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">ALTER USER 'usr_demo_bloqueo'@'localhost' ACCOUNT UNLOCK;</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DROP USER 'usr_demo_bloqueo'@'localhost';</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--seccion" data-titulo="03 · Respaldos y restauración">
+    <div class="seccion">
+      <span class="seccion__num anim" style="--d:0">03</span>
+      <div class="seccion__texto">
+        <p class="sobretitulo anim" style="--d:1">Actividad 5</p>
+        <h2 class="seccion__titulo anim" style="--d:2">Respaldos y restauración</h2>
+        <p class="seccion__desc anim" style="--d:3">Respaldar, perder la base a propósito, restaurarla y demostrar que sigue operando.</p>
+        <ol class="seccion__lista anim" style="--d:4">
+        <li><span>3.1</span>Estado previo al respaldo</li>
+        <li><span>3.2</span>Respaldo lógico con mysqldump</li>
+        <li><span>3.3</span>Desastre y restauración</li>
+        <li><span>3.4</span>Verificación posterior</li>
+        <li><span>3.5</span>Respaldo físico (copia en frío)</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="3.1 · Estado previo al respaldo">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">3.1</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 5 · Respaldos y restauración</p>
+          <h2 class="demo__titulo">Estado previo al respaldo</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Registrar la línea base que la restauración tendrá que reproducir.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Conteo por tabla (anotarlo).</li>
+          <li>Número de procedimientos.</li>
+          <li>Permisos de la cuenta de respaldo.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Conteos anotados · 7 procedimientos</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span><code>usr_respaldo</code>: sólo lectura + <code>SHOW_ROUTINE</code></span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [3.1]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT 'optica' AS tabla, COUNT(*) AS filas FROM optica UNION ALL
+SELECT 'rol',              COUNT(*) FROM rol              UNION ALL
+SELECT 'sucursal',         COUNT(*) FROM sucursal         UNION ALL
+SELECT 'usuario',          COUNT(*) FROM usuario          UNION ALL
+SELECT 'usuario_sucursal', COUNT(*) FROM usuario_sucursal UNION ALL
+SELECT 'paciente',         COUNT(*) FROM paciente         UNION ALL
+SELECT 'expediente',       COUNT(*) FROM expediente       UNION ALL
+SELECT 'asiento_clinico',  COUNT(*) FROM asiento_clinico  UNION ALL
+SELECT 'receta',           COUNT(*) FROM receta;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: 7</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT COUNT(*) AS procedimientos
+FROM information_schema.ROUTINES
+WHERE ROUTINE_SCHEMA = 'optica_db' AND ROUTINE_TYPE = 'PROCEDURE';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">La cuenta de respaldo es de sólo lectura (+ SHOW_ROUTINE)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SHOW GRANTS FOR 'usr_respaldo'@'localhost' USING 'rol_respaldo';</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="3.2 · Respaldo lógico con mysqldump">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">3.2</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 5 · Respaldos y restauración</p>
+          <h2 class="demo__titulo">Respaldo lógico con mysqldump</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>TERMINAL (PowerShell)</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Volcado consistente sin bloquear a los demás (<code>--single-transaction</code>), con rutinas incluidas.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li><code>mysqldump</code> con la cuenta <code>usr_respaldo</code>.</li>
+          <li>Comprobar el contenido con <code>grep</code>.</li>
+          <li>Sacar el archivo del servidor con <code>docker cp</code>.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>9 <code>CREATE TABLE</code> · 7 <code>PROCEDURE</code></span></li>
+          <li class="esperado esperado--aviso"><span class="esperado__icono">!</span><span>No usar <code>&gt;</code> en PowerShell 5.1: escribe UTF-16.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [3.2]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec -it mysql-optica mysqldump -u usr_respaldo -p `
+  --single-transaction --routines --triggers --events `
+  --hex-blob --default-character-set=utf8mb4 `
+  --databases optica_db --result-file=/tmp/optica_db_respaldo.sql</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Comprobación del contenido. Esperado: 9 y 7</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec mysql-optica grep -c "CREATE TABLE" /tmp/optica_db_respaldo.sql</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec mysql-optica grep -c "CREATE.*PROCEDURE" /tmp/optica_db_respaldo.sql</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Copia fuera del servidor (un respaldo dentro del servidor no protege contra la pérdida del servidor)</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker cp mysql-optica:/tmp/optica_db_respaldo.sql .</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="3.3 · Desastre y restauración">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">3.3</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 5 · Respaldos y restauración</p>
+          <h2 class="demo__titulo">Desastre y restauración</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root + TERMINAL</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Perder la base a propósito y recuperarla desde el archivo.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li><code>DROP DATABASE</code> y comprobar que ya no existe.</li>
+          <li>Restaurar con una cuenta administrativa.</li>
+          <li><kbd>F5</kbd> en DBeaver para refrescar.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>La base reaparece completa.</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Usuarios, roles y permisos intactos: viven en el esquema <code>mysql</code>.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [3.3]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota ">root · se simula la pérdida total de la base</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DROP DATABASE optica_db;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Comprobación: ya no existe</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SHOW DATABASES LIKE 'optica_db';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--terminal">TERMINAL · restauración con una cuenta administrativa (usr_respaldo es de sólo lectura: no puede crear objetos)</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec -it mysql-optica sh -c "mysql -uroot -p &lt; /tmp/optica_db_respaldo.sql"</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Cuentas, roles y GRANT no viajan en el volcado: viven en el esquema</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">mysql, que no se borró. Por eso los permisos siguen vigentes.</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">En DBeaver: F5 sobre la conexión para refrescar el navegador.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="3.4 · Verificación posterior">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">3.4</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 5 · Respaldos y restauración</p>
+          <h2 class="demo__titulo">Verificación posterior</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Un respaldo no es válido hasta que se restaura y se verifica: estructura, datos y operación.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Conteos contra los de la demo 3.1.</li>
+          <li>Los siete procedimientos.</li>
+          <li>Prueba funcional transaccional.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Conteos idénticos a 3.1.</span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>7 procedimientos <code>DEFINER</code> · nuevo folio asignado</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [3.4]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">USE optica_db;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Debe coincidir, renglón por renglón, con [3.1]</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT 'optica' AS tabla, COUNT(*) AS filas FROM optica UNION ALL
+SELECT 'rol',              COUNT(*) FROM rol              UNION ALL
+SELECT 'sucursal',         COUNT(*) FROM sucursal         UNION ALL
+SELECT 'usuario',          COUNT(*) FROM usuario          UNION ALL
+SELECT 'usuario_sucursal', COUNT(*) FROM usuario_sucursal UNION ALL
+SELECT 'paciente',         COUNT(*) FROM paciente         UNION ALL
+SELECT 'expediente',       COUNT(*) FROM expediente       UNION ALL
+SELECT 'asiento_clinico',  COUNT(*) FROM asiento_clinico  UNION ALL
+SELECT 'receta',           COUNT(*) FROM receta;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Los siete procedimientos regresaron (gracias a --routines)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT ROUTINE_NAME, SECURITY_TYPE
+FROM information_schema.ROUTINES
+WHERE ROUTINE_SCHEMA = 'optica_db' AND ROUTINE_TYPE = 'PROCEDURE'
+ORDER BY ROUTINE_NAME;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Prueba funcional: la base vuelve a escribir de forma transaccional</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_alta_paciente_con_expediente(
+  BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Verificacion Restauracion',
+  '1980-01-01', 'M', '3510000001', 'verificacion@correo.com', NULL,
+  @pac_ver, @folio_ver);</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT @pac_ver AS paciente_id, @folio_ver AS folio_asignado;</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="3.5 · Respaldo físico (copia en frío)">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">3.5</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Actividad 5 · Respaldos y restauración</p>
+          <h2 class="demo__titulo">Respaldo físico (copia en frío)</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>sólo explicación</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Copiar los archivos: la restauración es rápida, pero queda atada a la versión y plataforma, y exige detener el servicio.</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Mostrar qué archivos <code>.ibd</code> forman la base.</li>
+          <li>Explicar los comandos de la copia en frío.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--aviso"><span class="esperado__icono">!</span><span>Sólo se explica: detener el servidor en vivo es arriesgado.</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [3.5]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <p class="nota ">root · qué archivos componen la base (esto sí se puede ejecutar)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT s.NAME AS tablespace, d.PATH AS archivo,
+       ROUND(s.FILE_SIZE / 1024 / 1024, 2) AS tamano_mb
+FROM information_schema.INNODB_TABLESPACES s
+LEFT JOIN information_schema.INNODB_DATAFILES d ON d.SPACE = s.SPACE
+WHERE s.NAME LIKE 'optica_db/%'
+ORDER BY s.NAME;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--terminal">TERMINAL · copia en frío (detiene el servicio)</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker compose stop mysql</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker run --rm -v act5_mysql_optica_data:/var/lib/mysql:ro -v "${PWD}:/respaldo" `
+  alpine tar czf /respaldo/optica_db_fisico.tar.gz -C /var/lib/mysql .</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker compose start mysql</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide slide--demo" data-titulo="C.1 · Limpieza">
+    <div class="demo">
+      <header class="demo__cab anim" style="--d:0">
+        <span class="demo__num">C.1</span>
+        <div class="demo__encabezado">
+          <p class="sobretitulo">Cierre · Limpieza</p>
+          <h2 class="demo__titulo">Limpieza</h2>
+        </div>
+        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
+      </header>
+
+      <aside class="demo__guia anim" style="--d:1">
+        <p class="demo__objetivo">Dejar los datos de muestra como estaban (alternativa: repetir la preparación).</p>
+        <h3 class="demo__subtitulo">Pasos</h3>
+        <ol class="pasos">
+          <li>Ejecutar el bloque completo con <kbd>Alt</kbd>+<kbd>X</kbd>.</li>
+        </ol>
+        <h3 class="demo__subtitulo">Resultado esperado</h3>
+        <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Vuelve a 6 · 6 · 9 · 8 · 1</span></li>
+        </ul>
+      </aside>
+
+      <div class="codigo anim" style="--d:2">
+        <div class="codigo__barra">
+          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="codigo__archivo">demo_expo.sql · [C.1]</span>
+          <button class="copiar copiar--todo" type="button">Copiar todo</button>
+        </div>
+        <div class="codigo__cuerpo">
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">USE optica_db;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Asientos de los pacientes de prueba (sus recetas caen por CASCADE)</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE a FROM asiento_clinico a
+  JOIN expediente e ON e.id = a.expediente_id
+  JOIN paciente   p ON p.id = e.paciente_id
+ WHERE p.nombre IN ('Rosa Medina Alcaraz', 'Prueba Concurrencia', 'Verificacion Restauracion');</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE e FROM expediente e
+  JOIN paciente p ON p.id = e.paciente_id
+ WHERE p.nombre IN ('Rosa Medina Alcaraz', 'Prueba Concurrencia', 'Verificacion Restauracion');</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE FROM paciente
+ WHERE nombre IN ('Rosa Medina Alcaraz', 'Prueba Concurrencia', 'Verificacion Restauracion');</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE FROM sucursal WHERE nombre IN ('Sucursal Poniente', 'Prueba Auditor');</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Sucursales de Sofía Ramírez (usr-03) como antes de [1.6]</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE FROM usuario_sucursal WHERE usuario_id = UNHEX(MD5('usr-03'));</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">INSERT INTO usuario_sucursal (usuario_id, sucursal_id)
+VALUES (UNHEX(MD5('usr-03')), UNHEX(MD5('suc-01')));</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Contacto de Juan Pérez como antes de [1.1]</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">UPDATE paciente
+   SET telefono  = '3511234567',
+       correo    = 'juan.perez@correo.com',
+       direccion = 'Calle Morelos 15, Zamora'
+ WHERE id = UNHEX(MD5('pac-01'));</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DROP USER IF EXISTS 'usr_demo_bloqueo'@'localhost';</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Esperado: 6 pacientes, 6 expedientes, 9 asientos, 8 recetas, 1 sin receta</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT (SELECT COUNT(*) FROM paciente)        AS pacientes,
+       (SELECT COUNT(*) FROM expediente)      AS expedientes,
+       (SELECT COUNT(*) FROM asiento_clinico) AS asientos,
+       (SELECT COUNT(*) FROM receta)          AS recetas,
+       (SELECT COUNT(*) FROM asiento_clinico a
+          LEFT JOIN receta r ON r.asiento_id = a.id
+         WHERE r.id IS NULL)                  AS asientos_sin_receta;</pre><button class="copiar" type="button">Copiar</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMOS:FIN -->
+
 </main>
 
 <!-- Controles -->
@@ -117,7 +2003,20 @@
   <button class="controles__btn" id="btn-ant" aria-label="Anterior">&#8592;</button>
   <span class="controles__contador"><span id="actual">1</span> / <span id="total">2</span></span>
   <button class="controles__btn" id="btn-sig" aria-label="Siguiente">&#8594;</button>
+  <button class="controles__btn controles__btn--indice" id="btn-indice" aria-label="Índice (tecla I)" title="Índice (tecla I)">&#9776;</button>
 </nav>
+
+<!-- Índice: salto directo a cualquier diapositiva -->
+<div class="indice" id="indice" hidden>
+  <div class="indice__panel" role="dialog" aria-modal="true" aria-labelledby="indice-titulo">
+    <div class="indice__cab">
+      <h2 id="indice-titulo">Índice</h2>
+      <button class="indice__cerrar" id="btn-cerrar-indice" aria-label="Cerrar">&#10005;</button>
+    </div>
+    <ol class="indice__lista" id="indice-lista"></ol>
+  </div>
+</div>
+<div class="aviso-copia" id="aviso-copia" role="status" aria-live="polite"></div>
 <div class="progreso"><div class="progreso__barra" id="progreso"></div></div>
 
 <script src="js/main.js"></script>

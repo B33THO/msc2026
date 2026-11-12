@@ -544,7 +544,7 @@ FROM paciente;
 -- Error esperado 3819: Check constraint 'ck_paciente_correo' is violated
 CALL sp_alta_paciente_con_expediente(
   @opt01, 'Prueba Correo Invalido', '1990-01-01', 'M',
-  NULL, 'correo-sin-arroba', NULL, @p_tmp, @f_tmp);
+  '3510000000', 'correo-sin-arroba', NULL, @p_tmp, @f_tmp);
 
 SELECT COUNT(*) AS pacientes, (SELECT COUNT(*) FROM expediente) AS expedientes
 FROM paciente;

@@ -38,6 +38,19 @@ btnAnt.addEventListener('click', () => irA(actual - 1));
 btnSig.addEventListener('click', () => irA(actual + 1));
 
 document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;   // no estorbar Ctrl+C, etc.
+
+  if (!indice.hidden) {
+    if (e.key === 'Escape' || e.key === 'i' || e.key === 'I') { e.preventDefault(); cerrarIndice(); }
+    return;
+  }
+  if (e.key === 'i' || e.key === 'I') { e.preventDefault(); abrirIndice(); return; }
+
+  // Enter sobre una sentencia enfocada la resalta en lugar de avanzar
+  if (e.key === 'Enter' && document.activeElement?.classList.contains('bloque')) {
+    e.preventDefault(); marcarBloque(document.activeElement); return;
+  }
+
   switch (e.key) {
     case 'ArrowRight': case 'PageDown': case ' ': case 'Enter':
       e.preventDefault(); irA(actual + 1); break;
@@ -61,6 +74,118 @@ document.addEventListener('touchend', (e) => {
   if (Math.abs(dx) > 60) irA(actual + (dx < 0 ? 1 : -1));
   toqueX = null;
 });
+
+/* ── Resaltado de sintaxis SQL ────────────────────────────── */
+const RE_SQL = /(--[^\n]*)|('(?:[^'\\]|\\.)*')|(@\w+)|(\b\d+(?:\.\d+)?\b)|(\b[A-Z_][A-Z0-9_]+\b)|(\b[a-z_][a-z0-9_]*\b)/g;
+const CLASES = [null, 't-com', 't-str', 't-var', 't-num', 't-kw', 't-id'];
+
+function escapar(t) {
+  return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function resaltar(pre) {
+  const texto = pre.textContent;
+  let html = '', ultimo = 0;
+  texto.replace(RE_SQL, (m, ...grupos) => {
+    const pos = grupos[grupos.length - 2];
+    const g = grupos.slice(0, 6).findIndex((x) => x !== undefined) + 1;
+    html += escapar(texto.slice(ultimo, pos)) + `<span class="${CLASES[g]}">${escapar(m)}</span>`;
+    ultimo = pos + m.length;
+    return m;
+  });
+  pre.innerHTML = html + escapar(texto.slice(ultimo));
+}
+document.querySelectorAll('pre.sql').forEach(resaltar);
+
+/* ── Copiar al portapapeles ───────────────────────────────── */
+const avisoCopia = document.getElementById('aviso-copia');
+let temporizadorAviso;
+
+async function copiarTexto(texto, mensaje) {
+  try {
+    await navigator.clipboard.writeText(texto);
+  } catch {
+    // Respaldo para navegadores que bloquean la API en file://
+    const area = document.createElement('textarea');
+    area.value = texto;
+    area.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    area.remove();
+  }
+  avisoCopia.textContent = mensaje;
+  avisoCopia.classList.add('visible');
+  clearTimeout(temporizadorAviso);
+  temporizadorAviso = setTimeout(() => avisoCopia.classList.remove('visible'), 1600);
+}
+
+function copiarBloque(bloque) {
+  const esCmd = bloque.classList.contains('bloque--cmd');
+  copiarTexto(bloque.querySelector('pre').textContent,
+    esCmd ? 'Comando copiado · pégalo en PowerShell' : 'Sentencia copiada · Ctrl+V en DBeaver');
+  bloque.classList.add('copiado');
+  setTimeout(() => bloque.classList.remove('copiado'), 1400);
+}
+
+document.addEventListener('click', (e) => {
+  const todo = e.target.closest('.copiar--todo');
+  if (todo) {
+    const cuerpo = todo.closest('.codigo').querySelector('.codigo__cuerpo');
+    let pres = cuerpo.querySelectorAll('.bloque--sql pre');
+    if (!pres.length) pres = cuerpo.querySelectorAll('.bloque--cmd pre');
+    copiarTexto([...pres].map((p) => p.textContent).join('\n\n'), `${pres.length} sentencias copiadas`);
+    todo.blur();
+    return;
+  }
+  const bloque = e.target.closest('.bloque');
+  if (!bloque) return;
+  // Sólo el botón copia; un clic en el resto del bloque únicamente lo resalta
+  if (e.target.closest('.copiar')) {
+    copiarBloque(bloque);
+    marcarBloque(bloque, true);
+    e.target.blur();
+    return;
+  }
+  // Si el usuario está seleccionando texto con el ratón, no cambiar el resaltado
+  if (String(window.getSelection()).length) return;
+  marcarBloque(bloque);
+});
+
+/* Resaltado persistente: un bloque marcado a la vez; otro clic lo desmarca */
+function marcarBloque(bloque, forzar = false) {
+  const yaMarcado = bloque.classList.contains('marcado');
+  document.querySelectorAll('.bloque.marcado').forEach((b) => b.classList.remove('marcado'));
+  if (forzar || !yaMarcado) bloque.classList.add('marcado');
+}
+
+/* ── Índice ───────────────────────────────────────────────── */
+const indice = document.getElementById('indice');
+const listaIndice = document.getElementById('indice-lista');
+
+slides.forEach((s, i) => {
+  const li = document.createElement('li');
+  if (s.classList.contains('slide--seccion')) li.className = 'indice__seccion';
+  const b = document.createElement('button');
+  b.innerHTML = `<span class="indice__n">${i + 1}</span><span></span>`;
+  b.lastChild.textContent = s.dataset.titulo || `Diapositiva ${i + 1}`;
+  b.addEventListener('click', () => { cerrarIndice(); irA(i); });
+  li.appendChild(b);
+  listaIndice.appendChild(li);
+});
+
+function abrirIndice() {
+  indice.hidden = false;
+  const botones = listaIndice.querySelectorAll('button');
+  botones.forEach((b, i) => b.classList.toggle('actual', i === actual));
+  botones[actual]?.focus();
+  botones[actual]?.scrollIntoView({ block: 'center' });
+}
+function cerrarIndice() { indice.hidden = true; }
+
+document.getElementById('btn-indice').addEventListener('click', (e) => { e.currentTarget.blur(); abrirIndice(); });
+document.getElementById('btn-cerrar-indice').addEventListener('click', cerrarIndice);
+indice.addEventListener('click', (e) => { if (e.target === indice) cerrarIndice(); });
 
 /* ── Efecto máquina de escribir en la terminal ────────────── */
 function escribirTerminal(slide) {

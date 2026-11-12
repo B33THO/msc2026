@@ -348,6 +348,7 @@ CALL sp_buscar_paciente(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Juan');
 
 CALL sp_alta_paciente_con_expediente(
   BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Verificacion Restauracion',
-  '1980-01-01', 'M', NULL, NULL, NULL, @pac_ver, @folio_ver);
+  '1980-01-01', 'M', '3510000001', 'verificacion@correo.com', NULL,
+  @pac_ver, @folio_ver);
 
 SELECT @pac_ver AS paciente_id, @folio_ver AS folio_asignado;
