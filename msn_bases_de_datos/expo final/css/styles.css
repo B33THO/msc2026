@@ -791,6 +791,11 @@ kbd {
 .bloque:hover .copiar, .bloque:focus-within .copiar, .bloque.copiado .copiar, .bloque.marcado .copiar { opacity: 1; }
 .bloque.copiado .copiar { color: var(--verde); border-color: var(--verde); }
 
+/* CALL con botón para saltar al CREATE PROCEDURE, a la izquierda de Copiar */
+.bloque--call { padding-right: 15rem; }
+.bloque .ir-declaracion, .bloque .volver-call { right: 5rem; }
+.bloque .volver-call { color: var(--naranja-cl); border-color: var(--naranja); }
+
 /* Resaltado de sintaxis (lo aplica main.js) */
 .t-com { color: #6a8794; font-style: italic; }
 .t-str { color: #a5e3a0; }

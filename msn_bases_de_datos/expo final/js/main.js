@@ -97,6 +97,53 @@ function resaltar(pre) {
 }
 document.querySelectorAll('pre.sql').forEach(resaltar);
 
+/* ── Ir a la declaración desde cada CALL ──────────────────── */
+const declaraciones = new Map();   // nombre del procedimiento → bloque CREATE PROCEDURE
+document.querySelectorAll('.bloque--sql pre').forEach((pre) => {
+  const m = pre.textContent.match(/^CREATE PROCEDURE (\w+)/);
+  if (m) declaraciones.set(m[1], pre.closest('.bloque'));
+});
+document.querySelectorAll('.bloque--sql pre').forEach((pre) => {
+  const m = pre.textContent.match(/^CALL (\w+)/);
+  if (!m || !declaraciones.has(m[1])) return;
+  const btn = document.createElement('button');
+  btn.className = 'copiar ir-declaracion';
+  btn.type = 'button';
+  btn.dataset.proc = m[1];
+  btn.textContent = 'Ir a la declaración';
+  const bloque = pre.closest('.bloque');
+  bloque.classList.add('bloque--call');
+  bloque.appendChild(btn);
+});
+
+// Un solo botón de regreso; se coloca en la declaración a la que se saltó
+const btnVolver = document.createElement('button');
+btnVolver.className = 'copiar volver-call';
+btnVolver.type = 'button';
+btnVolver.textContent = 'Volver al CALL';
+let origenCall = null;
+
+function irABloque(bloque) {
+  irA(slides.indexOf(bloque.closest('.slide')));
+  marcarBloque(bloque, true);
+  const cuerpo = bloque.closest('.codigo__cuerpo');
+  const arriba = bloque.getBoundingClientRect().top - cuerpo.getBoundingClientRect().top;
+  cuerpo.scrollTo({ top: cuerpo.scrollTop + arriba - 8, behavior: 'smooth' });
+}
+
+function irADeclaracion(nombre, origen) {
+  const destino = declaraciones.get(nombre);
+  origenCall = origen;
+  destino.appendChild(btnVolver);
+  irABloque(destino);
+}
+
+function volverAlCall() {
+  btnVolver.remove();
+  if (origenCall) irABloque(origenCall);
+  origenCall = null;
+}
+
 /* ── Copiar al portapapeles ───────────────────────────────── */
 const avisoCopia = document.getElementById('aviso-copia');
 let temporizadorAviso;
@@ -136,6 +183,16 @@ document.addEventListener('click', (e) => {
     if (!pres.length) pres = cuerpo.querySelectorAll('.bloque--cmd pre');
     copiarTexto([...pres].map((p) => p.textContent).join('\n\n'), `${pres.length} sentencias copiadas`);
     todo.blur();
+    return;
+  }
+  const ir = e.target.closest('.ir-declaracion');
+  if (ir) {
+    irADeclaracion(ir.dataset.proc, ir.closest('.bloque'));
+    ir.blur();
+    return;
+  }
+  if (e.target.closest('.volver-call')) {
+    volverAlCall();
     return;
   }
   const bloque = e.target.closest('.bloque');

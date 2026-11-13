@@ -1151,6 +1151,10 @@ FROM paciente WHERE id = UUID_TO_BIN(@pac01);</pre><button class="copiar" type="
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_alta_paciente_con_expediente(
   @opt01, 'Prueba Correo Invalido', '1990-01-01', 'M',
   '3510000000', 'correo-sin-arroba', NULL, @p_tmp, @f_tmp);</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--error">Campo mal enviado · p_correo = 'correo-sin-arroba': no tiene @ ni dominio, así que no cumple el REGEXP de chk_paciente_correo y el INSERT INTO paciente falla.</p>
+          <p class="nota ">Los demás IN son válidos: nombre, fecha, sexo 'M' y teléfono cumplen sus reglas; direccion = NULL está permitido (único campo opcional).</p>
+          <p class="nota ">@opt01 · IN: UUID de la óptica, definido en P.2 (SET @opt01 = …).</p>
+          <p class="nota ">@p_tmp, @f_tmp · OUT: recibirían el id del paciente y el folio, pero el EXIT HANDLER hace ROLLBACK + RESIGNAL antes de asignarlos; quedan sin valor útil.</p>
           <p class="nota ">Después: los mismos 7 y 7</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT (SELECT COUNT(*) FROM paciente)   AS pacientes,
        (SELECT COUNT(*) FROM expediente) AS expedientes;</pre><button class="copiar" type="button">Copiar</button></div>
