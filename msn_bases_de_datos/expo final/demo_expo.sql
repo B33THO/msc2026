@@ -444,12 +444,12 @@ ORDER BY TABLE_NAME, CONSTRAINT_NAME;
 -- =====================================================================
 USE optica_db;
 
-SET @opt01 = BIN_TO_UUID(UNHEX(MD5('opt-01')));
-SET @suc01 = BIN_TO_UUID(UNHEX(MD5('suc-01')));
-SET @suc04 = BIN_TO_UUID(UNHEX(MD5('suc-04')));
-SET @usr02 = BIN_TO_UUID(UNHEX(MD5('usr-02')));
-SET @usr04 = BIN_TO_UUID(UNHEX(MD5('usr-04')));
-SET @pac01 = BIN_TO_UUID(UNHEX(MD5('pac-01')));
+SET @opt_01_id = BIN_TO_UUID(UNHEX(MD5('opt-01')));
+SET @suc_01_id = BIN_TO_UUID(UNHEX(MD5('suc-01')));
+SET @suc_04_id = BIN_TO_UUID(UNHEX(MD5('suc-04')));
+SET @usr_02_id = BIN_TO_UUID(UNHEX(MD5('usr-02')));
+SET @usr_04_id = BIN_TO_UUID(UNHEX(MD5('usr-04')));
+SET @pac_01_id = BIN_TO_UUID(UNHEX(MD5('pac-01')));
 
 -- Esperado: 6 pacientes, 6 expedientes, 9 asientos, 8 recetas, 1 sin receta
 SELECT (SELECT COUNT(*) FROM paciente)        AS pacientes,
@@ -703,19 +703,19 @@ ORDER BY CREATED;
 --  Una sola sentencia de escritura: InnoDB ya la hace atómica.
 -- =====================================================================
 -- Consulta por prefijo: devuelve Juan Pérez y Juana Martínez
-CALL sp_buscar_paciente(@opt01, 'Juan');
+CALL sp_buscar_paciente(@opt_01_id, 'Juan');
 
 -- Un solo UPDATE, con validación previa
 CALL sp_actualizar_contacto_paciente(
-  @pac01, '3511234567', 'juan.perez@correo.com',
+  @pac_01_id, '3511234567', 'juan.perez@correo.com',
   'Calle Morelos 15, Col. Centro, Zamora');
 
 SELECT nombre, telefono, correo, direccion
-FROM paciente WHERE id = UUID_TO_BIN(@pac01);
+FROM paciente WHERE id = UUID_TO_BIN(@pac_01_id);
 
 -- Un solo INSERT; el id generado regresa en el parámetro OUT
 CALL sp_alta_sucursal(
-  @opt01, 'Sucursal Poniente', 'Av. Juárez 500, Zamora', @suc_nueva);
+  @opt_01_id, 'Sucursal Poniente', 'Av. Juárez 500, Zamora', @suc_nueva);
 
 SELECT @suc_nueva AS sucursal_id;
 
@@ -725,7 +725,7 @@ SELECT @suc_nueva AS sucursal_id;
 --  Dos tablas y un folio consecutivo en una sola unidad de trabajo.
 -- =====================================================================
 CALL sp_alta_paciente_con_expediente(
-  @opt01, 'Rosa Medina Alcaraz', '1990-05-14', 'F',
+  @opt_01_id, 'Rosa Medina Alcaraz', '1990-05-14', 'F',
   '3519876543', 'rosa.medina@correo.com', 'Calle Allende 22, Zamora',
   @pac_rosa, @folio_rosa);
 
@@ -746,7 +746,7 @@ SELECT (SELECT COUNT(*) FROM paciente)   AS pacientes,
 
 -- ERROR ESPERADO 3819: Check constraint 'chk_paciente_correo' is violated
 CALL sp_alta_paciente_con_expediente(
-  @opt01, 'Prueba Correo Invalido', '1990-01-01', 'M',
+  @opt_01_id, 'Prueba Correo Invalido', '1990-01-01', 'M',
   '3510000000', 'correo-sin-arroba', NULL, @p_tmp, @f_tmp);
 
 -- Después: los mismos 7 y 7
@@ -760,7 +760,7 @@ SELECT (SELECT COUNT(*) FROM paciente)   AS pacientes,
 -- =====================================================================
 -- Caso válido: asiento + receta en una transacción
 CALL sp_registrar_consulta(
-  @exp_rosa, @usr02, @suc01,
+  @exp_rosa, @usr_02_id, @suc_01_id,
   'Cansancio visual al leer', NULL, 'Madre con astigmatismo',
   'Astigmatismo leve', 'Primera consulta',
   'CR-39', 61.0, 20.5,
@@ -773,7 +773,7 @@ SELECT @asiento_rosa AS asiento_id, @receta_rosa AS receta_id;
 -- ERROR ESPERADO 1644: La sucursal no pertenece a la optica del paciente
 -- (suc-04 es de opt-02; Rosa es de opt-01)
 CALL sp_registrar_consulta(
-  @exp_rosa, @usr02, @suc04,
+  @exp_rosa, @usr_02_id, @suc_04_id,
   NULL, NULL, NULL, 'Prueba de optica cruzada', NULL,
   NULL, NULL, NULL,
   -1.00, NULL, NULL, NULL, -1.00, NULL, NULL, NULL,
@@ -782,7 +782,7 @@ CALL sp_registrar_consulta(
 -- ERROR ESPERADO 1644: El usuario no existe o esta dado de baja
 -- (usr-04 tiene activo = FALSE)
 CALL sp_registrar_consulta(
-  @exp_rosa, @usr04, @suc01,
+  @exp_rosa, @usr_04_id, @suc_01_id,
   NULL, NULL, NULL, 'Prueba de usuario inactivo', NULL,
   NULL, NULL, NULL,
   -1.00, NULL, NULL, NULL, -1.00, NULL, NULL, NULL,
