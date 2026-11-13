@@ -66,14 +66,14 @@ META = {
     "1.0": dict(
         titulo="Creación de los procedimientos",
         conexion="root",
-        objetivo="Crear los siete procedimientos. <code>DELIMITER $$</code> evita que los <code>;</code> del cuerpo corten el <code>CREATE PROCEDURE</code>.",
+        objetivo="Crear los cinco procedimientos. <code>DELIMITER $$</code> evita que los <code>;</code> del cuerpo corten el <code>CREATE PROCEDURE</code>.",
         pasos=[
             "<b>Copiar todo</b> y pegarlo en un editor nuevo.",
             "Ejecutar el bloque completo con <kbd>Alt</kbd>+<kbd>X</kbd>.",
             "Verificar en <code>information_schema.ROUTINES</code>.",
         ],
         esperado=[
-            ("ok", "7 procedimientos · 3 con <code>START TRANSACTION</code>"),
+            ("ok", "5 procedimientos · 2 con <code>START TRANSACTION</code>"),
             ("aviso", "<code>DELIMITER</code> lo interpreta el cliente (DBeaver o <code>mysql</code>); el servidor nunca lo recibe."),
         ],
     ),
@@ -130,50 +130,19 @@ META = {
             ("error", "Error 1644 (dos veces), con el mensaje de cada regla."),
         ],
     ),
-    "1.5": dict(
-        titulo="Con transacción vs. sin transacción",
+    "2.0": dict(
+        titulo="Creación de roles, permisos y cuentas",
         conexion="root",
-        objetivo="Mismo error, dos resultados: sin transacción queda un asiento huérfano; con transacción no queda nada.",
+        objetivo="Crear los 5 roles, darles sus permisos y otorgar cada uno a una cuenta. Va después de 1.0: los <code>GRANT EXECUTE</code> necesitan los procedimientos.",
         pasos=[
-            "Conteo inicial.",
-            "Versión <code>_sin_tx</code> → error → conteo.",
-            "Versión transaccional → mismo error → conteo.",
-            "Borrar a mano el renglón huérfano.",
+            "<b>Copiar todo</b> y ejecutarlo con <kbd>Alt</kbd>+<kbd>X</kbd>.",
+            "<code>CREATE ROLE</code> y <code>GRANT</code> de permisos a cada rol.",
+            "<code>CREATE USER</code> con su política de contraseña.",
+            "<code>GRANT</code> rol → usuario y <code>SET DEFAULT ROLE</code>.",
         ],
         esperado=[
-            ("ok", "Inicio: 10 asientos · 9 recetas · 1 sin receta"),
-            ("error", "Sin TX: 11 · 9 · <strong>2</strong> sin receta (quedó basura)."),
-            ("ok", "Con TX: siguen 11 · 9 · 2. Ningún cambio."),
-        ],
-    ),
-    "1.6": dict(
-        titulo="SAVEPOINT: tolerar renglones inválidos",
-        conexion="root",
-        objetivo="Un <code>SAVEPOINT</code> por renglón: se descarta el inválido sin abortar la operación completa.",
-        pasos=[
-            "<code>CALL</code> con dos sucursales válidas y un id inexistente.",
-            "Leer los contadores <code>OUT</code>.",
-            "Consultar las sucursales asignadas.",
-        ],
-        esperado=[
-            ("ok", "asignadas = 2 · omitidas = 1"),
-            ("ok", "Matriz Centro y Sucursal Jardinadas"),
-        ],
-    ),
-    "1.7": dict(
-        titulo="Concurrencia: SELECT … FOR UPDATE",
-        conexion="2 editores root",
-        objetivo="<code>FOR UPDATE</code> serializa el cálculo del folio: dos altas simultáneas no obtienen el mismo número.",
-        pasos=[
-            "Editor A: <code>START TRANSACTION</code> y lectura con <code>FOR UPDATE</code>.",
-            "Editor B: <code>CALL</code> → queda en espera.",
-            "Editor A: <code>COMMIT</code>.",
-            "Editor B: leer el folio.",
-        ],
-        esperado=[
-            ("ok", "B se desbloquea en cuanto A confirma."),
-            ("ok", "Folio <code>EXP-2026-0005</code>, sin error 1062."),
-            ("aviso", "Hacerlo ágil: <code>innodb_lock_wait_timeout</code> es de 50 s."),
+            ("ok", "<code>role_edges</code> = 5"),
+            ("aviso", "Al inicio borra roles y cuentas: la demo se puede repetir."),
         ],
     ),
     "2.1": dict(
@@ -258,7 +227,7 @@ META = {
             "Permisos de la cuenta de respaldo.",
         ],
         esperado=[
-            ("ok", "Conteos anotados · 7 procedimientos"),
+            ("ok", "Conteos anotados · 5 procedimientos"),
             ("ok", "<code>usr_respaldo</code>: sólo lectura + <code>SHOW_ROUTINE</code>"),
         ],
     ),
@@ -272,7 +241,7 @@ META = {
             "Sacar el archivo del servidor con <code>docker cp</code>.",
         ],
         esperado=[
-            ("ok", "9 <code>CREATE TABLE</code> · 7 <code>PROCEDURE</code>"),
+            ("ok", "9 <code>CREATE TABLE</code> · 5 <code>PROCEDURE</code>"),
             ("aviso", "No usar <code>&gt;</code> en PowerShell 5.1: escribe UTF-16."),
         ],
     ),
@@ -296,12 +265,12 @@ META = {
         objetivo="Un respaldo no es válido hasta que se restaura y se verifica: estructura, datos y operación.",
         pasos=[
             "Conteos contra los de la demo 3.1.",
-            "Los siete procedimientos.",
+            "Los cinco procedimientos.",
             "Prueba funcional transaccional.",
         ],
         esperado=[
             ("ok", "Conteos idénticos a 3.1."),
-            ("ok", "7 procedimientos <code>DEFINER</code> · nuevo folio asignado"),
+            ("ok", "5 procedimientos <code>DEFINER</code> · nuevo folio asignado"),
         ],
     ),
     "3.5": dict(
@@ -342,20 +311,77 @@ PROCEDIMIENTOS = [
     ("Con transacción", "Varias escrituras que deben verse como una sola operación.", [
         ("sp_alta_paciente_con_expediente", "(…, OUT paciente, OUT folio)",
          "Crea paciente y expediente juntos; calcula el folio consecutivo <code>EXP-AAAA-NNNN</code>.",
-         ["EXIT HANDLER", "FOR UPDATE"], "1.2 · 1.3 · 1.7"),
+         ["EXIT HANDLER", "FOR UPDATE"], "1.2 · 1.3"),
         ("sp_registrar_consulta", "(expediente, usuario, sucursal, …)",
          "Asiento clínico y receta en bloque; valida tres reglas de negocio antes de escribir.",
-         ["SIGNAL", "ROLLBACK"], "1.4 · 1.5"),
-        ("sp_reasignar_sucursales_usuario", "(usuario, JSON, OUT asignadas, OUT omitidas)",
-         "Reemplaza las sucursales de un usuario; descarta los renglones inválidos sin abortar.",
-         ["SAVEPOINT", "JSON"], "1.6"),
-    ]),
-    ("De contraste", "Sólo para la demostración; no forma parte de la aplicación.", [
-        ("sp_registrar_consulta_sin_tx", "(expediente, usuario, sucursal, …)",
-         "La misma consulta sin transacción: si falla la receta, el asiento queda huérfano.",
-         ["autocommit"], "1.5"),
+         ["SIGNAL", "ROLLBACK"], "1.4"),
     ]),
 ]
+
+# Diapositiva previa a la demo 2.0: roles, su cuenta y sus permisos.
+# Fuente: optica_db.sql (PARTE 4). Letras: S SELECT · I INSERT · U UPDATE · D DELETE
+# (rol, usuario, demos, descripción, [(objeto, permisos)], [negado])
+ROLES = [
+    ("rol_admin_app", "usr_admin", "",
+     "Administra la estructura de la óptica y las cuentas. No ve datos clínicos.",
+     [("optica · sucursal · rol", "S I U"),
+      ("usuario_sucursal", "S I D"),
+      ("usuario", "S* I U"),
+      ("EXECUTE", "sp_alta_sucursal")],
+     ["pacientes y expedientes", "historial clínico"]),
+    ("rol_optometrista", "usr_optometrista1", "2.3",
+     "Atiende la consulta: registra asientos clínicos y emite recetas.",
+     [("catálogos · usuario*", "S"),
+      ("paciente · expediente", "S"),
+      ("asiento_clinico · receta", "S I U"),
+      ("EXECUTE", "sp_buscar_paciente · sp_registrar_consulta")],
+     ["DELETE en el historial", "editar pacientes"]),
+    ("rol_recepcion", "usr_recepcion1", "2.2",
+     "Da de alta pacientes y expedientes y entrega recetas.",
+     [("optica · sucursal · usuario*", "S"),
+      ("paciente", "S I U"),
+      ("expediente", "S I"),
+      ("receta", "S"),
+      ("EXECUTE", "sp_buscar_paciente · sp_alta_paciente_con_expediente · sp_actualizar_contacto_paciente")],
+     ["asiento_clinico", "DELETE"]),
+    ("rol_auditor", "usr_auditor", "2.3 · 2.4",
+     "Revisión y cumplimiento: lee todo y no modifica nada.",
+     [("las 8 tablas", "S"),
+      ("usuario", "S*"),
+      ("EXECUTE", "sp_buscar_paciente")],
+     ["INSERT · UPDATE · DELETE", "procedimientos de alta"]),
+    ("rol_respaldo", "usr_respaldo", "3.1 – 3.3",
+     "Cuenta técnica: lo mínimo que necesita <code>mysqldump</code>.",
+     [("optica_db.*", "SELECT · LOCK TABLES · SHOW VIEW · TRIGGER · EVENT"),
+      ("*.* (global)", "PROCESS · SHOW_ROUTINE")],
+     ["cualquier escritura"]),
+]
+
+# Detalle que se abre al hacer clic en la tarjeta de un rol.
+# rol: (título, [(privilegio, ámbito, explicación)])
+DETALLE_ROL = {
+    "rol_respaldo": ("Privilegios de rol_respaldo", [
+        ("LOCK TABLES", "optica_db.*",
+         "Permite bloquear tablas (en las que ya tiene <code>SELECT</code>) mientras se leen. "
+         "<code>mysqldump</code> lo usa para volcar un estado consistente cuando no se usa "
+         "<code>--single-transaction</code> o hay tablas no transaccionales."),
+        ("SHOW VIEW", "optica_db.*",
+         "Permite leer la definición de las vistas (<code>SHOW CREATE VIEW</code>) para "
+         "incluirlas en el respaldo."),
+        ("TRIGGER", "optica_db.*",
+         "Permite leer los disparadores (<code>SHOW CREATE TRIGGER</code>) y volcarlos con "
+         "<code>--triggers</code>. Nota: también permitiría crearlos o borrarlos."),
+        ("EVENT", "optica_db.*",
+         "Permite leer los eventos programados del Event Scheduler y volcarlos con "
+         "<code>--events</code>. Nota: también permitiría crearlos o modificarlos."),
+        ("PROCESS", "*.* (global)",
+         "Permite ver los procesos del servidor y leer la información de tablespaces. Desde "
+         "MySQL 8.0.21 <code>mysqldump</code> lo exige; sin él hay que usar <code>--no-tablespaces</code>."),
+        ("SHOW_ROUTINE", "*.* (global)",
+         "Permite leer el cuerpo de procedimientos y funciones creados por otra cuenta. Sin él, "
+         "<code>--routines</code> genera el volcado sin los procedimientos."),
+    ]),
+}
 
 RE_ID = re.compile(r"^--\s+\[([A-Z0-9]\.\d)\]")
 RE_REGLA = re.compile(r"^-- [=#]{10,}")
@@ -544,6 +570,61 @@ def slide_procedimientos():
   </section>"""
 
 
+def slide_roles():
+    tarjetas, dialogos = [], []
+    for n, (rol, usuario, demos, desc, permisos, negado) in enumerate(ROLES):
+        filas = "".join(
+            f"""
+            <li{' class="perm--exec"' if obj == "EXECUTE" else ""}><span class="perm__obj">{html.escape(obj)}</span><span class="perm__val">{"<br>".join(html.escape(v) for v in val.split(" · ")) if obj == "EXECUTE" else html.escape(val)}</span></li>"""
+            for obj, val in permisos
+        )
+        negados = "".join(f"<span>{html.escape(x)}</span>" for x in negado)
+        demo = f'<span class="proc__demo">{demos}</span>' if demos else ""
+        detalle, atributos, pista = DETALLE_ROL.get(rol), "", ""
+        if detalle:
+            titulo_det, privs = detalle
+            atributos = (f' role="button" tabindex="0" data-dialogo="dlg-{rol}"'
+                         f' aria-haspopup="dialog" title="Clic para ver qué hace cada privilegio"')
+            pista = '<p class="rol__pista">ⓘ clic para ver qué hace cada privilegio</p>'
+            filas_det = "".join(f"""
+          <li><div class="det__priv"><code>{html.escape(pr)}</code><span>{html.escape(amb)}</span></div><p>{txt}</p></li>"""
+                for pr, amb, txt in privs)
+            dialogos.append(f"""
+    <dialog class="detalle rol--{n}" id="dlg-{rol}" aria-labelledby="dlg-{rol}-titulo">
+      <div class="detalle__cab">
+        <h3 id="dlg-{rol}-titulo">{titulo_det}</h3>
+        <button class="detalle__cerrar" type="button" aria-label="Cerrar">&#10005;</button>
+      </div>
+      <ul class="detalle__lista">{filas_det}
+      </ul>
+    </dialog>""")
+        tarjetas.append(f"""
+      <li class="rol anim rol--{n}{' rol--clic' if detalle else ''}" style="--d:{n + 2}"{atributos}>
+        <div class="proc__cab">
+          <code class="proc__nombre">{rol}</code>
+          {demo}
+        </div>
+        <p class="proc__firma">cuenta: {usuario}@localhost</p>
+        <p class="proc__texto">{desc}</p>
+        <ul class="perms">{filas}
+        </ul>
+        <div class="rol__negado"><b>✖</b>{negados}</div>{pista}
+      </li>""")
+    return f"""
+  <section class="slide slide--procs" data-titulo="Roles y permisos">
+    <header class="encabezado encabezado--izq">
+      <p class="sobretitulo anim" style="--d:0">{TEMAS["2"][0]} · {TEMAS["2"][1]}</p>
+      <h2 class="encabezado__titulo anim" style="--d:1">{len(ROLES)} roles por crear, una cuenta por rol</h2>
+      <p class="encabezado__texto anim" style="--d:1">
+        Los permisos se otorgan <strong>al rol</strong>; el usuario sólo lo hereda (<code>SET DEFAULT ROLE</code>).
+        <span class="leyenda"><b>S</b> SELECT · <b>I</b> INSERT · <b>U</b> UPDATE · <b>D</b> DELETE · <b>*</b> sin <code>password_hash</code></span>
+      </p>
+    </header>
+    <ol class="roles">{"".join(tarjetas)}
+    </ol>{"".join(dialogos)}
+  </section>"""
+
+
 def slide_demo(clave, cuerpo):
     m = META[clave]
     actividad, tema = TEMAS[clave[0]]
@@ -603,6 +684,8 @@ def main():
             salida.append(slide_seccion(tema, [k for k in bloques if k[0] == tema]))
             if tema == "1":
                 salida.append(slide_procedimientos())
+            elif tema == "2":
+                salida.append(slide_roles())
         tema_actual = tema
         salida.append(slide_demo(clave, cuerpo))
 

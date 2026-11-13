@@ -9,12 +9,12 @@
 --                  se separan con una línea en blanco; no partir un
 --                  CALL con líneas vacías).
 --    · Alt+X       ejecuta el bloque seleccionado como script.
---    · Auto-commit ENCENDIDO (botón de la barra de herramientas). La
---      demo 1.5 depende de ello.
+--    · Auto-commit ENCENDIDO (botón de la barra de herramientas).
 --    · Los errores marcados "ERROR ESPERADO" son intencionales.
 --
 --  Requisitos
 --    · La base, las tablas y los datos se crean en vivo en [P.1].
+--    · Roles, permisos y cuentas usr_* se crean en vivo en [2.0].
 --    · Conexiones en DBeaver (propiedad del driver
 --      allowPublicKeyRetrieval=true):
 --        root               creación de objetos y temas 1 y 3
@@ -446,10 +446,8 @@ USE optica_db;
 
 SET @opt01 = BIN_TO_UUID(UNHEX(MD5('opt-01')));
 SET @suc01 = BIN_TO_UUID(UNHEX(MD5('suc-01')));
-SET @suc02 = BIN_TO_UUID(UNHEX(MD5('suc-02')));
 SET @suc04 = BIN_TO_UUID(UNHEX(MD5('suc-04')));
 SET @usr02 = BIN_TO_UUID(UNHEX(MD5('usr-02')));
-SET @usr03 = BIN_TO_UUID(UNHEX(MD5('usr-03')));
 SET @usr04 = BIN_TO_UUID(UNHEX(MD5('usr-04')));
 SET @pac01 = BIN_TO_UUID(UNHEX(MD5('pac-01')));
 
@@ -480,13 +478,11 @@ DROP PROCEDURE IF EXISTS sp_actualizar_contacto_paciente;
 DROP PROCEDURE IF EXISTS sp_alta_sucursal;
 DROP PROCEDURE IF EXISTS sp_alta_paciente_con_expediente;
 DROP PROCEDURE IF EXISTS sp_registrar_consulta;
-DROP PROCEDURE IF EXISTS sp_reasignar_sucursales_usuario;
-DROP PROCEDURE IF EXISTS sp_registrar_consulta_sin_tx;
 
 -- Desde aquí el fin de sentencia es $$
 DELIMITER $$
 
--- 1/7 · sin TX · sólo lectura, búsqueda por prefijo
+-- 1/5 · sin TX · sólo lectura, búsqueda por prefijo
 CREATE PROCEDURE sp_buscar_paciente(
   IN p_optica_id CHAR(36),
   IN p_nombre    VARCHAR(150)
@@ -508,7 +504,7 @@ BEGIN
   ORDER BY p.nombre;
 END$$
 
--- 2/7 · sin TX · validación previa + un solo UPDATE
+-- 2/5 · sin TX · validación previa + un solo UPDATE
 CREATE PROCEDURE sp_actualizar_contacto_paciente(
   IN p_paciente_id CHAR(36),
   IN p_telefono    VARCHAR(20),
@@ -531,7 +527,7 @@ BEGIN
    WHERE id = v_paciente;
 END$$
 
--- 3/7 · sin TX · un solo INSERT, id en parámetro OUT
+-- 3/5 · sin TX · un solo INSERT, id en parámetro OUT
 CREATE PROCEDURE sp_alta_sucursal(
   IN  p_optica_id   CHAR(36),
   IN  p_nombre      VARCHAR(150),
@@ -547,7 +543,7 @@ BEGIN
   SET p_sucursal_id = BIN_TO_UUID(v_sucursal);
 END$$
 
--- 4/7 · con TX · paciente + expediente, folio con FOR UPDATE
+-- 4/5 · con TX · paciente + expediente, folio con FOR UPDATE
 CREATE PROCEDURE sp_alta_paciente_con_expediente(
   IN  p_optica_id        CHAR(36),
   IN  p_nombre           VARCHAR(150),
@@ -593,7 +589,7 @@ BEGIN
   SET p_paciente_id = BIN_TO_UUID(v_paciente);
 END$$
 
--- 5/7 · con TX · asiento + receta, tres reglas de negocio
+-- 5/5 · con TX · asiento + receta, tres reglas de negocio
 CREATE PROCEDURE sp_registrar_consulta(
   IN  p_expediente_id    CHAR(36),
   IN  p_usuario_id       CHAR(36),
@@ -690,90 +686,10 @@ BEGIN
   SET p_asiento_id = BIN_TO_UUID(v_asiento);
 END$$
 
--- 6/7 · con TX · SAVEPOINT por renglón
-CREATE PROCEDURE sp_reasignar_sucursales_usuario(
-  IN  p_usuario_id CHAR(36),
-  IN  p_sucursales JSON,
-  OUT p_asignadas  INT,
-  OUT p_omitidas   INT
-)
-COMMENT 'Reasigna sucursales usando SAVEPOINT para tolerar renglones invalidos'
-BEGIN
-  DECLARE v_usuario  BINARY(16);
-  DECLARE v_sucursal BINARY(16);
-  DECLARE v_total    INT;
-  DECLARE v_i        INT DEFAULT 0;
-  DECLARE v_error    INT DEFAULT 0;
-  DECLARE EXIT HANDLER FOR SQLEXCEPTION
-  BEGIN
-    ROLLBACK;
-    RESIGNAL;
-  END;
-  SET v_usuario   = UUID_TO_BIN(p_usuario_id);
-  SET v_total     = COALESCE(JSON_LENGTH(p_sucursales), 0);
-  SET p_asignadas = 0;
-  SET p_omitidas  = 0;
-  START TRANSACTION;
-    IF NOT EXISTS (SELECT 1 FROM usuario WHERE id = v_usuario) THEN
-      SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El usuario indicado no existe';
-    END IF;
-    DELETE FROM usuario_sucursal WHERE usuario_id = v_usuario;
-    WHILE v_i < v_total DO
-      SET v_error = 0;
-      SAVEPOINT sp_renglon;
-      -- Bloque anidado con su propio manejador: atrapa el error de
-      -- este renglón sin abortar el procedimiento completo.
-      BEGIN
-        DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET v_error = 1;
-        SET v_sucursal = UUID_TO_BIN(
-              JSON_UNQUOTE(JSON_EXTRACT(p_sucursales, CONCAT('$[', v_i, ']'))));
-        INSERT INTO usuario_sucursal (usuario_id, sucursal_id)
-        VALUES (v_usuario, v_sucursal);
-      END;
-      IF v_error = 1 THEN
-        ROLLBACK TO SAVEPOINT sp_renglon;
-        SET p_omitidas = p_omitidas + 1;
-      ELSE
-        SET p_asignadas = p_asignadas + 1;
-      END IF;
-      SET v_i = v_i + 1;
-    END WHILE;
-    IF p_asignadas = 0 THEN
-      SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Ninguna sucursal de la lista resulto valida';
-    END IF;
-  COMMIT;
-END$$
-
--- 7/7 · contraste · misma consulta SIN transacción
-CREATE PROCEDURE sp_registrar_consulta_sin_tx(
-  IN p_expediente_id CHAR(36),
-  IN p_usuario_id    CHAR(36),
-  IN p_sucursal_id   CHAR(36),
-  IN p_analisis      TEXT,
-  IN p_od_esfera     DECIMAL(4,2),
-  IN p_od_eje        SMALLINT
-)
-COMMENT 'DEMOSTRATIVO: misma operacion sin transaccion. No usar en produccion'
-BEGIN
-  DECLARE v_asiento BINARY(16);
-  DECLARE v_receta  BINARY(16);
-  SET v_asiento = UUID_TO_BIN(UUID(), 1);
-  SET v_receta  = UUID_TO_BIN(UUID(), 1);
-  INSERT INTO asiento_clinico
-    (id, expediente_id, usuario_id, sucursal_id, fecha, analisis_preliminar)
-  VALUES
-    (v_asiento, UUID_TO_BIN(p_expediente_id), UUID_TO_BIN(p_usuario_id),
-     UUID_TO_BIN(p_sucursal_id), CURRENT_DATE, p_analisis);
-  INSERT INTO receta (id, asiento_id, fecha, od_esfera, od_eje)
-  VALUES (v_receta, v_asiento, CURRENT_DATE, p_od_esfera, p_od_eje);
-END$$
-
 -- De vuelta al ';' normal
 DELIMITER ;
 
--- Esperado: 7 procedimientos, 3 con START TRANSACTION (con_tx = 1)
+-- Esperado: 5 procedimientos, 2 con START TRANSACTION (con_tx = 1)
 SELECT ROUTINE_NAME AS procedimiento,
        ROUTINE_DEFINITION LIKE '%START TRANSACTION%' AS con_tx,
        ROUTINE_COMMENT AS descripcion
@@ -873,101 +789,119 @@ CALL sp_registrar_consulta(
   @a_tmp, @r_tmp);
 
 
--- =====================================================================
---  [1.5] CON TRANSACCIÓN vs. SIN TRANSACCIÓN   (conexión: root)
---  Mismo error en ambas (eje 200 viola chk_receta_od_eje, rango 1-180).
---  Lo que cambia es el estado en que queda la base.
--- =====================================================================
--- Estado inicial. Esperado: 10 asientos, 9 recetas, 1 sin receta
-SELECT COUNT(*) AS asientos,
-       (SELECT COUNT(*) FROM receta) AS recetas,
-       (SELECT COUNT(*) FROM asiento_clinico a
-          LEFT JOIN receta r ON r.asiento_id = a.id
-         WHERE r.id IS NULL) AS asientos_sin_receta
-FROM asiento_clinico;
-
--- SIN transacción · ERROR ESPERADO 3819 (chk_receta_od_eje)
-CALL sp_registrar_consulta_sin_tx(
-  @exp_rosa, @usr02, @suc01, 'Prueba sin transaccion', -1.00, 200);
-
--- Esperado: 11 asientos, 9 recetas, 2 sin receta  <- quedó basura
-SELECT COUNT(*) AS asientos,
-       (SELECT COUNT(*) FROM receta) AS recetas,
-       (SELECT COUNT(*) FROM asiento_clinico a
-          LEFT JOIN receta r ON r.asiento_id = a.id
-         WHERE r.id IS NULL) AS asientos_sin_receta
-FROM asiento_clinico;
-
--- CON transacción, mismo error · ERROR ESPERADO 3819 (chk_receta_od_eje)
-CALL sp_registrar_consulta(
-  @exp_rosa, @usr02, @suc01,
-  NULL, NULL, NULL, 'Prueba con transaccion', NULL,
-  'CR-39', 61.0, 20.5,
-  -1.00, NULL, 200, NULL,
-  -1.00, NULL,  90, NULL,
-  @a_tmp, @r_tmp);
-
--- Esperado: los mismos 11 / 9 / 2  <- la transacción no dejó rastro
-SELECT COUNT(*) AS asientos,
-       (SELECT COUNT(*) FROM receta) AS recetas,
-       (SELECT COUNT(*) FROM asiento_clinico a
-          LEFT JOIN receta r ON r.asiento_id = a.id
-         WHERE r.id IS NULL) AS asientos_sin_receta
-FROM asiento_clinico;
-
--- El renglón huérfano hay que buscarlo y borrarlo a mano
-DELETE FROM asiento_clinico
- WHERE analisis_preliminar = 'Prueba sin transaccion'
-   AND NOT EXISTS (SELECT 1 FROM receta r WHERE r.asiento_id = asiento_clinico.id);
-
-
--- =====================================================================
---  [1.6] SAVEPOINT: TOLERAR RENGLONES INVÁLIDOS   (conexión: root)
---  Dos sucursales válidas y un id inexistente.
--- =====================================================================
-CALL sp_reasignar_sucursales_usuario(
-  @usr03,
-  JSON_ARRAY(@suc01, @suc02, '00000000-0000-0000-0000-000000000000'),
-  @asignadas, @omitidas);
-
--- Esperado: asignadas = 2, omitidas = 1
-SELECT @asignadas AS asignadas, @omitidas AS omitidas;
-
--- Esperado: Matriz Centro y Sucursal Jardinadas
-SELECT s.nombre AS sucursal_asignada
-FROM usuario_sucursal us
-JOIN sucursal s ON s.id = us.sucursal_id
-WHERE us.usuario_id = UUID_TO_BIN(@usr03);
-
-
--- =====================================================================
---  [1.7] CONCURRENCIA: SELECT ... FOR UPDATE   (dos editores root)
---  DBeaver abre una conexión por editor: cada editor es una sesión.
---  Hacerlo ágil: innodb_lock_wait_timeout es de 50 s.
--- =====================================================================
--- ---- SESIÓN A (editor 1) · paso 1: toma el bloqueo del rango de folios
-START TRANSACTION;
-
-SELECT COALESCE(MAX(CAST(SUBSTRING(folio, 10) AS UNSIGNED)), 0) + 1 AS siguiente
-  FROM expediente
- WHERE folio LIKE 'EXP-2026-%'
- FOR UPDATE;
-
--- ---- SESIÓN B (editor 2) · paso 2: queda EN ESPERA (reloj girando)
-CALL sp_alta_paciente_con_expediente(
-  BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Prueba Concurrencia', '1995-02-02', 'M',
-  '3510000002', 'concurrencia@correo.com', NULL, @pac_b, @folio_b);
-
--- ---- SESIÓN A · paso 3: libera el bloqueo; B termina de inmediato
-COMMIT;
-
--- ---- SESIÓN B · paso 4. Esperado: EXP-2026-0005, sin duplicado
-SELECT @folio_b AS folio;
-
-
 -- #####################################################################
 --  TEMA 2 · SEGURIDAD: ROLES Y USUARIOS (Actividad 4)
 -- #####################################################################
+
+-- =====================================================================
+--  [2.0] CREACIÓN DE ROLES, PERMISOS Y CUENTAS   (conexión: root)
+--  Ejecutar TODO el bloque con Alt+X. Va después de [1.0] porque los
+--  GRANT EXECUTE necesitan que los procedimientos ya existan (y un
+--  DROP PROCEDURE borra los EXECUTE que tenía).
+--  Cada GRANT de rol a usuario crea una fila en mysql.role_edges; cada
+--  SET DEFAULT ROLE, una en mysql.default_roles.
+-- =====================================================================
+-- Por si se repite la demo: partir de cero (las cuentas caen con sus GRANT)
+DROP USER IF EXISTS 'usr_admin'@'localhost', 'usr_optometrista1'@'localhost',
+  'usr_recepcion1'@'localhost', 'usr_auditor'@'localhost', 'usr_respaldo'@'localhost';
+DROP ROLE IF EXISTS 'rol_admin_app', 'rol_optometrista', 'rol_recepcion',
+  'rol_auditor', 'rol_respaldo';
+
+-- ---- 1. ROLES · cuentas bloqueadas que sólo agrupan permisos
+CREATE ROLE 'rol_admin_app', 'rol_optometrista', 'rol_recepcion',
+  'rol_auditor', 'rol_respaldo';
+
+-- ---- 2. PERMISOS POR ROL
+-- rol_admin_app · estructura y cuentas; no ve datos clínicos ni password_hash
+GRANT SELECT, INSERT, UPDATE ON optica_db.optica   TO 'rol_admin_app';
+GRANT SELECT, INSERT, UPDATE ON optica_db.sucursal TO 'rol_admin_app';
+GRANT SELECT, INSERT, UPDATE ON optica_db.rol      TO 'rol_admin_app';
+GRANT SELECT, INSERT, DELETE ON optica_db.usuario_sucursal TO 'rol_admin_app';
+GRANT SELECT (id, optica_id, rol_id, nombre, correo, activo)
+  ON optica_db.usuario TO 'rol_admin_app';
+GRANT INSERT, UPDATE ON optica_db.usuario TO 'rol_admin_app';
+GRANT EXECUTE ON PROCEDURE optica_db.sp_alta_sucursal TO 'rol_admin_app';
+
+-- rol_optometrista · lee catálogos y pacientes; historial sin DELETE
+GRANT SELECT ON optica_db.optica           TO 'rol_optometrista';
+GRANT SELECT ON optica_db.sucursal         TO 'rol_optometrista';
+GRANT SELECT ON optica_db.usuario_sucursal TO 'rol_optometrista';
+GRANT SELECT (id, nombre) ON optica_db.usuario TO 'rol_optometrista';
+GRANT SELECT ON optica_db.paciente         TO 'rol_optometrista';
+GRANT SELECT ON optica_db.expediente       TO 'rol_optometrista';
+GRANT SELECT, INSERT, UPDATE ON optica_db.asiento_clinico TO 'rol_optometrista';
+GRANT SELECT, INSERT, UPDATE ON optica_db.receta          TO 'rol_optometrista';
+GRANT EXECUTE ON PROCEDURE optica_db.sp_buscar_paciente    TO 'rol_optometrista';
+GRANT EXECUTE ON PROCEDURE optica_db.sp_registrar_consulta TO 'rol_optometrista';
+
+-- rol_recepcion · pacientes y expedientes; receta sí, asiento_clinico no
+GRANT SELECT ON optica_db.optica   TO 'rol_recepcion';
+GRANT SELECT ON optica_db.sucursal TO 'rol_recepcion';
+GRANT SELECT (id, nombre) ON optica_db.usuario TO 'rol_recepcion';
+GRANT SELECT, INSERT, UPDATE ON optica_db.paciente   TO 'rol_recepcion';
+GRANT SELECT, INSERT         ON optica_db.expediente TO 'rol_recepcion';
+GRANT SELECT ON optica_db.receta TO 'rol_recepcion';
+GRANT EXECUTE ON PROCEDURE optica_db.sp_buscar_paciente              TO 'rol_recepcion';
+GRANT EXECUTE ON PROCEDURE optica_db.sp_alta_paciente_con_expediente TO 'rol_recepcion';
+GRANT EXECUTE ON PROCEDURE optica_db.sp_actualizar_contacto_paciente TO 'rol_recepcion';
+
+-- rol_auditor · lectura total, excepto password_hash
+GRANT SELECT ON optica_db.optica           TO 'rol_auditor';
+GRANT SELECT ON optica_db.sucursal         TO 'rol_auditor';
+GRANT SELECT ON optica_db.rol              TO 'rol_auditor';
+GRANT SELECT ON optica_db.usuario_sucursal TO 'rol_auditor';
+GRANT SELECT ON optica_db.paciente         TO 'rol_auditor';
+GRANT SELECT ON optica_db.expediente       TO 'rol_auditor';
+GRANT SELECT ON optica_db.asiento_clinico  TO 'rol_auditor';
+GRANT SELECT ON optica_db.receta           TO 'rol_auditor';
+GRANT SELECT (id, optica_id, rol_id, nombre, correo, activo)
+  ON optica_db.usuario TO 'rol_auditor';
+GRANT EXECUTE ON PROCEDURE optica_db.sp_buscar_paciente TO 'rol_auditor';
+
+-- rol_respaldo · lo mínimo para mysqldump --single-transaction --routines
+GRANT SELECT, LOCK TABLES, SHOW VIEW, TRIGGER, EVENT
+  ON optica_db.* TO 'rol_respaldo';
+GRANT PROCESS, SHOW_ROUTINE ON *.* TO 'rol_respaldo';
+
+-- ---- 3. CUENTAS · expira a 90 días, no repetir las últimas 5,
+-- bloqueo de 1 día tras 5 intentos fallidos
+CREATE USER 'usr_admin'@'localhost' IDENTIFIED BY 'Cambiar#Admin_2026'
+  WITH MAX_USER_CONNECTIONS 5
+  PASSWORD EXPIRE INTERVAL 90 DAY PASSWORD HISTORY 5
+  FAILED_LOGIN_ATTEMPTS 5 PASSWORD_LOCK_TIME 1;
+CREATE USER 'usr_optometrista1'@'localhost' IDENTIFIED BY 'Cambiar#Opto_2026'
+  WITH MAX_USER_CONNECTIONS 5
+  PASSWORD EXPIRE INTERVAL 90 DAY PASSWORD HISTORY 5
+  FAILED_LOGIN_ATTEMPTS 5 PASSWORD_LOCK_TIME 1;
+CREATE USER 'usr_recepcion1'@'localhost' IDENTIFIED BY 'Cambiar#Recep_2026'
+  WITH MAX_USER_CONNECTIONS 5
+  PASSWORD EXPIRE INTERVAL 90 DAY PASSWORD HISTORY 5
+  FAILED_LOGIN_ATTEMPTS 5 PASSWORD_LOCK_TIME 1;
+CREATE USER 'usr_auditor'@'localhost' IDENTIFIED BY 'Cambiar#Audit_2026'
+  WITH MAX_USER_CONNECTIONS 2
+  PASSWORD EXPIRE INTERVAL 90 DAY PASSWORD HISTORY 5
+  FAILED_LOGIN_ATTEMPTS 5 PASSWORD_LOCK_TIME 1;
+-- Cuenta técnica: no expira para no romper el respaldo programado
+CREATE USER 'usr_respaldo'@'localhost' IDENTIFIED BY 'Cambiar#Backup_2026'
+  WITH MAX_USER_CONNECTIONS 2
+  PASSWORD EXPIRE NEVER
+  FAILED_LOGIN_ATTEMPTS 5 PASSWORD_LOCK_TIME 1;
+
+-- ---- 4. ROL OTORGADO (role_edges) Y ROL ACTIVO (default_roles)
+GRANT 'rol_admin_app'    TO 'usr_admin'@'localhost';
+GRANT 'rol_optometrista' TO 'usr_optometrista1'@'localhost';
+GRANT 'rol_recepcion'    TO 'usr_recepcion1'@'localhost';
+GRANT 'rol_auditor'      TO 'usr_auditor'@'localhost';
+GRANT 'rol_respaldo'     TO 'usr_respaldo'@'localhost';
+SET DEFAULT ROLE 'rol_admin_app'    TO 'usr_admin'@'localhost';
+SET DEFAULT ROLE 'rol_optometrista' TO 'usr_optometrista1'@'localhost';
+SET DEFAULT ROLE 'rol_recepcion'    TO 'usr_recepcion1'@'localhost';
+SET DEFAULT ROLE 'rol_auditor'      TO 'usr_auditor'@'localhost';
+SET DEFAULT ROLE 'rol_respaldo'     TO 'usr_respaldo'@'localhost';
+
+-- Esperado: 5 (un rol otorgado por cuenta)
+SELECT COUNT(*) AS role_edges FROM mysql.role_edges WHERE TO_USER LIKE 'usr\_%';
+
 
 -- =====================================================================
 --  [2.1] INVENTARIO DE ROLES, PERMISOS Y POLÍTICAS   (conexión: root)
@@ -1096,7 +1030,7 @@ SELECT 'expediente',       COUNT(*) FROM expediente       UNION ALL
 SELECT 'asiento_clinico',  COUNT(*) FROM asiento_clinico  UNION ALL
 SELECT 'receta',           COUNT(*) FROM receta;
 
--- Esperado: 7
+-- Esperado: 5
 SELECT COUNT(*) AS procedimientos
 FROM information_schema.ROUTINES
 WHERE ROUTINE_SCHEMA = 'optica_db' AND ROUTINE_TYPE = 'PROCEDURE';
@@ -1115,7 +1049,7 @@ SHOW GRANTS FOR 'usr_respaldo'@'localhost' USING 'rol_respaldo';
 --     --hex-blob --default-character-set=utf8mb4 `
 --     --databases optica_db --result-file=/tmp/optica_db_respaldo.sql
 --
---   Comprobación del contenido. Esperado: 9 y 7
+--   Comprobación del contenido. Esperado: 9 y 5
 --   docker exec mysql-optica grep -c "CREATE TABLE" /tmp/optica_db_respaldo.sql
 --   docker exec mysql-optica grep -c "CREATE.*PROCEDURE" /tmp/optica_db_respaldo.sql
 --
@@ -1159,7 +1093,7 @@ SELECT 'expediente',       COUNT(*) FROM expediente       UNION ALL
 SELECT 'asiento_clinico',  COUNT(*) FROM asiento_clinico  UNION ALL
 SELECT 'receta',           COUNT(*) FROM receta;
 
--- Los siete procedimientos regresaron (gracias a --routines)
+-- Los cinco procedimientos regresaron (gracias a --routines)
 SELECT ROUTINE_NAME, SECURITY_TYPE
 FROM information_schema.ROUTINES
 WHERE ROUTINE_SCHEMA = 'optica_db' AND ROUTINE_TYPE = 'PROCEDURE'
@@ -1202,22 +1136,16 @@ USE optica_db;
 DELETE a FROM asiento_clinico a
   JOIN expediente e ON e.id = a.expediente_id
   JOIN paciente   p ON p.id = e.paciente_id
- WHERE p.nombre IN ('Rosa Medina Alcaraz', 'Prueba Concurrencia', 'Verificacion Restauracion');
+ WHERE p.nombre IN ('Rosa Medina Alcaraz', 'Verificacion Restauracion');
 
 DELETE e FROM expediente e
   JOIN paciente p ON p.id = e.paciente_id
- WHERE p.nombre IN ('Rosa Medina Alcaraz', 'Prueba Concurrencia', 'Verificacion Restauracion');
+ WHERE p.nombre IN ('Rosa Medina Alcaraz', 'Verificacion Restauracion');
 
 DELETE FROM paciente
- WHERE nombre IN ('Rosa Medina Alcaraz', 'Prueba Concurrencia', 'Verificacion Restauracion');
+ WHERE nombre IN ('Rosa Medina Alcaraz', 'Verificacion Restauracion');
 
 DELETE FROM sucursal WHERE nombre IN ('Sucursal Poniente', 'Prueba Auditor');
-
--- Sucursales de Sofía Ramírez (usr-03) como antes de [1.6]
-DELETE FROM usuario_sucursal WHERE usuario_id = UNHEX(MD5('usr-03'));
-
-INSERT INTO usuario_sucursal (usuario_id, sucursal_id)
-VALUES (UNHEX(MD5('usr-03')), UNHEX(MD5('suc-01')));
 
 -- Contacto de Juan Pérez como antes de [1.1]
 UPDATE paciente

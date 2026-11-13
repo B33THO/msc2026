@@ -40,6 +40,15 @@ btnSig.addEventListener('click', () => irA(actual + 1));
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;   // no estorbar Ctrl+C, etc.
 
+  // Con un diálogo abierto, las teclas son suyas (Esc lo cierra el navegador)
+  if (document.querySelector('dialog[open]')) return;
+
+  // Enter / Espacio sobre una tarjeta con detalle abre su diálogo
+  const tarjeta = document.activeElement?.closest?.('[data-dialogo]');
+  if (tarjeta && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault(); abrirDialogo(tarjeta); return;
+  }
+
   if (!indice.hidden) {
     if (e.key === 'Escape' || e.key === 'i' || e.key === 'I') { e.preventDefault(); cerrarIndice(); }
     return;
@@ -174,6 +183,18 @@ function copiarBloque(bloque) {
   bloque.classList.add('copiado');
   setTimeout(() => bloque.classList.remove('copiado'), 1400);
 }
+
+// Diálogos de detalle (tarjetas con data-dialogo)
+function abrirDialogo(tarjeta) {
+  document.getElementById(tarjeta.dataset.dialogo)?.showModal();
+}
+document.addEventListener('click', (e) => {
+  const tarjeta = e.target.closest('[data-dialogo]');
+  if (tarjeta) { abrirDialogo(tarjeta); return; }
+  const dlg = e.target.closest('dialog.detalle');
+  // Cerrar con la ✕ o con clic en el fondo (el propio <dialog> fuera del contenido)
+  if (dlg && (e.target === dlg || e.target.closest('.detalle__cerrar'))) dlg.close();
+});
 
 document.addEventListener('click', (e) => {
   const todo = e.target.closest('.copiar--todo');
