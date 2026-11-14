@@ -162,8 +162,10 @@ META = {
     "2.2": dict(
         titulo="Recepción: lo permitido y lo negado",
         conexion="usr_recepcion1",
+        cuentas=["usr_recepcion1"],
         objetivo="Menor privilegio: recepción gestiona pacientes, pero no ve información clínica ni contraseñas.",
         pasos=[
+            "Cambiar la conexión del editor de root a <code>usr_recepcion1</code> (DBeaver: Ctrl+9).",
             "Confirmar usuario y rol activos.",
             "Lo permitido: el procedimiento y las columnas autorizadas.",
             "Lo negado: columna, tabla y operación.",
@@ -176,10 +178,11 @@ META = {
     "2.3": dict(
         titulo="Optometrista y auditor",
         conexion="usr_optometrista1 · usr_auditor",
+        cuentas=["usr_optometrista1", "usr_auditor"],
         objetivo="El historial clínico es inmutable y el auditor sólo lee.",
         pasos=[
-            "Como optometrista: leer, intentar borrar recetas, intentar editar un paciente.",
-            "Como auditor: leer e intentar ejecutar un procedimiento de alta.",
+            "Ctrl+9 → <code>usr_optometrista1</code>: confirmar usuario y rol; leer, intentar borrar recetas, intentar editar un paciente.",
+            "Ctrl+9 → <code>usr_auditor</code>: confirmar usuario y rol; leer e intentar ejecutar un procedimiento de alta.",
         ],
         esperado=[
             ("ok", "Los <code>SELECT</code> funcionan."),
@@ -190,12 +193,13 @@ META = {
     "2.4": dict(
         titulo="GRANT / REVOKE en vivo",
         conexion="root ↔ usr_auditor",
+        cuentas=["root", "usr_auditor"],
         objetivo="Se administran roles, no personas: un <code>REVOKE</code> al rol afecta a todos sus usuarios.",
         pasos=[
-            "root: <code>REVOKE EXECUTE</code> al rol.",
-            "auditor: el <code>CALL</code> ahora falla.",
-            "root: <code>GRANT</code> de vuelta.",
-            "auditor: funciona otra vez.",
+            "Ctrl+9 → root: <code>REVOKE EXECUTE</code> al rol.",
+            "Ctrl+9 → <code>usr_auditor</code>: el <code>CALL</code> ahora falla.",
+            "Ctrl+9 → root: <code>GRANT</code> de vuelta.",
+            "Ctrl+9 → <code>usr_auditor</code>: funciona otra vez.",
         ],
         esperado=[
             ("error", "1370 tras el <code>REVOKE</code>"),
@@ -234,14 +238,18 @@ META = {
     "3.2": dict(
         titulo="Respaldo lógico con mysqldump",
         conexion="TERMINAL (PowerShell)",
+        cuentas=["usr_respaldo"],
         objetivo="Volcado consistente sin bloquear a los demás (<code>--single-transaction</code>), con rutinas incluidas.",
         pasos=[
+            "Crear la carpeta <code>respaldos_optica</code> y entrar en ella.",
+            "Agregar <code>mysql</code> y <code>mysqldump</code> al PATH y comprobar con <code>--version</code>.",
             "<code>mysqldump</code> con la cuenta <code>usr_respaldo</code>.",
-            "Comprobar el contenido con <code>grep</code>.",
-            "Sacar el archivo del servidor con <code>docker cp</code>.",
+            "Comprobar el contenido con <code>Select-String</code> y la última línea.",
+            "Copiar el archivo fuera del equipo y comparar tamaños.",
         ],
         esperado=[
             ("ok", "9 <code>CREATE TABLE</code> · 5 <code>PROCEDURE</code>"),
+            ("ok", "Última línea: <code>-- Dump completed on …</code>"),
             ("aviso", "No usar <code>&gt;</code> en PowerShell 5.1: escribe UTF-16."),
         ],
     ),
@@ -251,10 +259,11 @@ META = {
         objetivo="Perder la base a propósito y recuperarla desde el archivo.",
         pasos=[
             "<code>DROP DATABASE</code> y comprobar que ya no existe.",
-            "Restaurar con una cuenta administrativa.",
+            "Restaurar con <code>root</code> desde la carpeta del respaldo (misma terminal de 3.2).",
             "<kbd>F5</kbd> en DBeaver para refrescar.",
         ],
         esperado=[
+            ("ok", "<code>SHOW DATABASES</code> vacío tras el <code>DROP</code>."),
             ("ok", "La base reaparece completa."),
             ("ok", "Usuarios, roles y permisos intactos: viven en el esquema <code>mysql</code>."),
         ],
@@ -280,10 +289,15 @@ META = {
         pasos=[
             "Mostrar qué archivos <code>.ibd</code> forman la base.",
             "Explicar los comandos de la copia en frío.",
+            "Guardar el <code>.zip</code> con ruta absoluta en <code>respaldos_optica</code>.",
         ],
-        esperado=[("aviso", "Sólo se explica: detener el servidor en vivo es arriesgado.")],
+        esperado=[
+            ("aviso", "Sólo se explica: detener el servidor en vivo es arriesgado."),
+            ("aviso", "Como administrador, PowerShell abre en <code>C:\\Windows\\System32</code>: sin ruta absoluta el <code>.zip</code> queda ahí."),
+        ],
     ),
     "C.1": dict(
+        diapositiva=False,  # sólo para ensayos: el bloque sigue en demo_expo.sql
         titulo="Limpieza",
         conexion="root",
         objetivo="Dejar los datos de muestra como estaban (alternativa: repetir la preparación).",
@@ -386,7 +400,11 @@ DETALLE_ROL = {
 RE_ID = re.compile(r"^--\s+\[([A-Z0-9]\.\d)\]")
 RE_REGLA = re.compile(r"^-- [=#]{10,}")
 RE_GUIONES = re.compile(r"^-- -{10,}")
-RE_CMD = re.compile(r"^(docker|grep|mysql|mysqldump)\b")
+RE_CMD = re.compile(
+    r"^(\$env:|\(Select-String\b"
+    r"|(mysql|mysqldump|cd|New-Item|Get-Item|Get-Content|Get-PSDrive"
+    r"|Copy-Item|Stop-Service|Start-Service|Compress-Archive)(?=\s|$))"
+)
 
 
 def leer_bloques():
@@ -625,6 +643,46 @@ def slide_roles():
   </section>"""
 
 
+RE_CUENTA = re.compile(r"CREATE USER '(\w+)'@'localhost' IDENTIFIED BY '([^']+)'")
+
+
+def leer_cuentas():
+    """{usuario: contraseña} tomadas de los CREATE USER de demo_expo.sql."""
+    return dict(RE_CUENTA.findall(SQL.read_text(encoding="utf-8")))
+
+
+def campo_cred(etiqueta, valor, aviso):
+    v = html.escape(valor)
+    return (f'<div class="cred__campo"><span class="cred__etiqueta">{etiqueta}</span>'
+            f'<code>{v}</code>'
+            f'<button class="copiar cred__copiar" type="button" data-copiar="{v}" '
+            f'data-aviso="{aviso}">Copiar</button></div>')
+
+
+def bloque_credenciales(nombres, conexion=""):
+    if not nombres:
+        return ""
+    cuentas = leer_cuentas()
+    terminal = conexion.startswith("TERMINAL")
+    donde = "Cuenta para la terminal" if terminal else "Conexión DBeaver"
+    pegar = " · pégalo en la terminal" if terminal else " · pégalo en DBeaver"
+    tarjetas = []
+    for n in nombres:
+        if n == "root":
+            tarjetas.append(
+                '<div class="cred"><p class="cred__conexion">Conexión DBeaver <b>localhost</b></p>'
+                '<p class="cred__nota">root · la conexión de administración que ya existe</p></div>')
+            continue
+        if n not in cuentas:
+            raise SystemExit(f"Sin CREATE USER para {n} en demo_expo.sql")
+        tarjetas.append(
+            f'<div class="cred"><p class="cred__conexion">{donde} <b>{html.escape(n)}</b></p>'
+            f'{campo_cred("Usuario", n, "Usuario copiado" + pegar)}'
+            f'{campo_cred("Contraseña", cuentas[n], "Contraseña copiada" + pegar)}</div>')
+    return ('\n        <h3 class="demo__subtitulo">Credenciales</h3>\n        <div class="creds">'
+            + "".join(tarjetas) + "</div>")
+
+
 def slide_demo(clave, cuerpo):
     m = META[clave]
     actividad, tema = TEMAS[clave[0]]
@@ -646,7 +704,7 @@ def slide_demo(clave, cuerpo):
       </header>
 
       <aside class="demo__guia anim" style="--d:1">
-        <p class="demo__objetivo">{m['objetivo']}</p>
+        <p class="demo__objetivo">{m['objetivo']}</p>{bloque_credenciales(m.get('cuentas'), m['conexion'])}
         <h3 class="demo__subtitulo">Pasos</h3>
         <ol class="pasos">
 {pasos}
@@ -679,6 +737,8 @@ def main():
 
     salida, tema_actual = [], None
     for clave, cuerpo in bloques.items():
+        if not META[clave].get("diapositiva", True):
+            continue
         tema = clave[0]
         if tema != tema_actual and tema in SECCIONES:
             salida.append(slide_seccion(tema, [k for k in bloques if k[0] == tema]))
@@ -695,7 +755,8 @@ def main():
     aviso = "\n  <!-- Generado por tools/generar_demos.py a partir de demo_expo.sql. No editar a mano. -->"
     nuevo = contenido[:a] + aviso + "".join(salida) + "\n\n  " + contenido[b:]
     INDEX.write_text(nuevo, encoding="utf-8", newline="\n")
-    print(f"{len(bloques)} demos generadas en {INDEX.name}")
+    generadas = sum(1 for k in bloques if META[k].get("diapositiva", True))
+    print(f"{generadas} demos generadas en {INDEX.name}")
 
 
 if __name__ == "__main__":

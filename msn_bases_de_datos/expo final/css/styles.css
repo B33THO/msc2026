@@ -733,6 +733,41 @@ kbd {
   border: 1px solid var(--borde-fuerte);
 }
 .esperados { list-style: none; display: grid; gap: .5rem; }
+
+/* Credenciales de las cuentas de la demo (usuario / contraseña con Copiar) */
+.creds { display: grid; gap: .5rem; }
+.cred {
+  display: grid;
+  gap: .35rem;
+  padding: .55rem .7rem;
+  border-radius: 9px;
+  border: 1px solid var(--borde);
+  background: rgba(0, 117, 143, .08);
+}
+.cred__conexion { font-size: .78rem; color: var(--texto-2); }
+.cred__conexion b { color: var(--azul-claro); font-family: var(--mono); font-weight: 600; }
+.cred__nota { font-size: .74rem; color: var(--texto-3); }
+.cred__campo {
+  display: grid;
+  grid-template-columns: 5.6rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .5rem;
+}
+.cred__etiqueta {
+  font-family: var(--mono);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+.cred__campo code {
+  font-family: var(--mono);
+  font-size: clamp(.76rem, .95vw, .88rem);
+  color: var(--texto);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.cred__copiar.copiado { color: var(--verde); border-color: var(--verde); }
 .esperado {
   display: flex;
   gap: .6rem;

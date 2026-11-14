@@ -546,8 +546,6 @@ ORDER BY TABLE_NAME, CONSTRAINT_NAME;</pre><button class="copiar" type="button">
         </div>
         <div class="codigo__cuerpo">
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">USE optica_db;</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota ">Los id del seed se generaron con <code>UNHEX(MD5('etiqueta'))</code>: el MD5 de una etiqueta fija (<code>'opt-01'</code>, <code>'suc-04'</code>…) siempre da los mismos 16 bytes. Por eso cada id se recalcula sin consultar la base, y <code>BIN_TO_UUID</code> lo convierte a texto (CHAR(36)), que es lo que reciben los procedimientos.</p>
-          <p class="nota ">MD5 no oculta ni cifra el id: <code>UNHEX(MD5('pac-01'))</code> <em>es</em> el id guardado en la tabla. Solo sirve para que los id de prueba sean predecibles y reproducibles; en producción se usaría <code>UUID_TO_BIN(UUID())</code> (aleatorio).</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SET @opt_01_id = BIN_TO_UUID(UNHEX(MD5('opt-01')));
 SET @suc_01_id = BIN_TO_UUID(UNHEX(MD5('suc-01')));
 SET @suc_04_id = BIN_TO_UUID(UNHEX(MD5('suc-04')));
@@ -1426,8 +1424,11 @@ ORDER BY user;</pre><button class="copiar" type="button">Copiar</button></div>
 
       <aside class="demo__guia anim" style="--d:1">
         <p class="demo__objetivo">Menor privilegio: recepción gestiona pacientes, pero no ve información clínica ni contraseñas.</p>
+        <h3 class="demo__subtitulo">Credenciales</h3>
+        <div class="creds"><div class="cred"><p class="cred__conexion">Conexión DBeaver <b>usr_recepcion1</b></p><div class="cred__campo"><span class="cred__etiqueta">Usuario</span><code>usr_recepcion1</code><button class="copiar cred__copiar" type="button" data-copiar="usr_recepcion1" data-aviso="Usuario copiado · pégalo en DBeaver">Copiar</button></div><div class="cred__campo"><span class="cred__etiqueta">Contraseña</span><code>Cambiar#Recep_2026</code><button class="copiar cred__copiar" type="button" data-copiar="Cambiar#Recep_2026" data-aviso="Contraseña copiada · pégalo en DBeaver">Copiar</button></div></div></div>
         <h3 class="demo__subtitulo">Pasos</h3>
         <ol class="pasos">
+          <li>Cambiar la conexión del editor de root a <code>usr_recepcion1</code> (DBeaver: Ctrl+9).</li>
           <li>Confirmar usuario y rol activos.</li>
           <li>Lo permitido: el procedimiento y las columnas autorizadas.</li>
           <li>Lo negado: columna, tabla y operación.</li>
@@ -1446,6 +1447,9 @@ ORDER BY user;</pre><button class="copiar" type="button">Copiar</button></div>
           <button class="copiar copiar--todo" type="button">Copiar todo</button>
         </div>
         <div class="codigo__cuerpo">
+          <p class="nota nota--sesion">CAMBIAR DE CONEXIÓN: root → usr_recepcion1</p>
+          <p class="nota ">En DBeaver: Ctrl+9 (conexión activa del editor) y elegir usr_recepcion1. MySQL no tiene un «cambiar de usuario» en SQL; como root todo funciona y no aparecería ninguno de los errores de la demo.</p>
+          <p class="nota nota--esperado">Esperado: usr_recepcion1@localhost · `rol_recepcion`@`%`</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT CURRENT_USER(), CURRENT_ROLE();</pre><button class="copiar" type="button">Copiar</button></div>
           <p class="nota nota--ok">OK: tiene EXECUTE sobre el procedimiento</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_buscar_paciente(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Juan');</pre><button class="copiar" type="button">Copiar</button></div>
@@ -1474,10 +1478,12 @@ ORDER BY user;</pre><button class="copiar" type="button">Copiar</button></div>
 
       <aside class="demo__guia anim" style="--d:1">
         <p class="demo__objetivo">El historial clínico es inmutable y el auditor sólo lee.</p>
+        <h3 class="demo__subtitulo">Credenciales</h3>
+        <div class="creds"><div class="cred"><p class="cred__conexion">Conexión DBeaver <b>usr_optometrista1</b></p><div class="cred__campo"><span class="cred__etiqueta">Usuario</span><code>usr_optometrista1</code><button class="copiar cred__copiar" type="button" data-copiar="usr_optometrista1" data-aviso="Usuario copiado · pégalo en DBeaver">Copiar</button></div><div class="cred__campo"><span class="cred__etiqueta">Contraseña</span><code>Cambiar#Opto_2026</code><button class="copiar cred__copiar" type="button" data-copiar="Cambiar#Opto_2026" data-aviso="Contraseña copiada · pégalo en DBeaver">Copiar</button></div></div><div class="cred"><p class="cred__conexion">Conexión DBeaver <b>usr_auditor</b></p><div class="cred__campo"><span class="cred__etiqueta">Usuario</span><code>usr_auditor</code><button class="copiar cred__copiar" type="button" data-copiar="usr_auditor" data-aviso="Usuario copiado · pégalo en DBeaver">Copiar</button></div><div class="cred__campo"><span class="cred__etiqueta">Contraseña</span><code>Cambiar#Audit_2026</code><button class="copiar cred__copiar" type="button" data-copiar="Cambiar#Audit_2026" data-aviso="Contraseña copiada · pégalo en DBeaver">Copiar</button></div></div></div>
         <h3 class="demo__subtitulo">Pasos</h3>
         <ol class="pasos">
-          <li>Como optometrista: leer, intentar borrar recetas, intentar editar un paciente.</li>
-          <li>Como auditor: leer e intentar ejecutar un procedimiento de alta.</li>
+          <li>Ctrl+9 → <code>usr_optometrista1</code>: confirmar usuario y rol; leer, intentar borrar recetas, intentar editar un paciente.</li>
+          <li>Ctrl+9 → <code>usr_auditor</code>: confirmar usuario y rol; leer e intentar ejecutar un procedimiento de alta.</li>
         </ol>
         <h3 class="demo__subtitulo">Resultado esperado</h3>
         <ul class="esperados">
@@ -1494,14 +1500,18 @@ ORDER BY user;</pre><button class="copiar" type="button">Copiar</button></div>
           <button class="copiar copiar--todo" type="button">Copiar todo</button>
         </div>
         <div class="codigo__cuerpo">
-          <p class="nota nota--sesion">como usr_optometrista1</p>
+          <p class="nota nota--sesion">CAMBIAR DE CONEXIÓN (Ctrl+9) → usr_optometrista1</p>
+          <p class="nota nota--esperado">Esperado: usr_optometrista1@localhost · `rol_optometrista`@`%`</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT CURRENT_USER(), CURRENT_ROLE();</pre><button class="copiar" type="button">Copiar</button></div>
           <p class="nota nota--ok">OK: lee y crea recetas</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT COUNT(*) AS recetas FROM receta;</pre><button class="copiar" type="button">Copiar</button></div>
           <p class="nota nota--error">ERROR ESPERADO 1142: el historial clínico no se borra (WHERE acotado por si se ejecuta por error con root)</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE FROM receta WHERE asiento_id = UNHEX(MD5('asi-01'));</pre><button class="copiar" type="button">Copiar</button></div>
           <p class="nota nota--error">ERROR ESPERADO 1142: los datos de contacto son de recepción</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">UPDATE paciente SET telefono = '0000000000' WHERE id = UNHEX(MD5('pac-01'));</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota nota--sesion">como usr_auditor</p>
+          <p class="nota nota--sesion">CAMBIAR DE CONEXIÓN (Ctrl+9) → usr_auditor</p>
+          <p class="nota nota--esperado">Esperado: usr_auditor@localhost · `rol_auditor`@`%`</p>
+          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT CURRENT_USER(), CURRENT_ROLE();</pre><button class="copiar" type="button">Copiar</button></div>
           <p class="nota nota--ok">OK: sólo lectura sobre todo el esquema</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT COUNT(*) AS asientos FROM asiento_clinico;</pre><button class="copiar" type="button">Copiar</button></div>
           <p class="nota nota--error">ERROR ESPERADO 1370: execute command denied (no tiene EXECUTE)</p>
@@ -1523,12 +1533,14 @@ ORDER BY user;</pre><button class="copiar" type="button">Copiar</button></div>
 
       <aside class="demo__guia anim" style="--d:1">
         <p class="demo__objetivo">Se administran roles, no personas: un <code>REVOKE</code> al rol afecta a todos sus usuarios.</p>
+        <h3 class="demo__subtitulo">Credenciales</h3>
+        <div class="creds"><div class="cred"><p class="cred__conexion">Conexión DBeaver <b>localhost</b></p><p class="cred__nota">root · la conexión de administración que ya existe</p></div><div class="cred"><p class="cred__conexion">Conexión DBeaver <b>usr_auditor</b></p><div class="cred__campo"><span class="cred__etiqueta">Usuario</span><code>usr_auditor</code><button class="copiar cred__copiar" type="button" data-copiar="usr_auditor" data-aviso="Usuario copiado · pégalo en DBeaver">Copiar</button></div><div class="cred__campo"><span class="cred__etiqueta">Contraseña</span><code>Cambiar#Audit_2026</code><button class="copiar cred__copiar" type="button" data-copiar="Cambiar#Audit_2026" data-aviso="Contraseña copiada · pégalo en DBeaver">Copiar</button></div></div></div>
         <h3 class="demo__subtitulo">Pasos</h3>
         <ol class="pasos">
-          <li>root: <code>REVOKE EXECUTE</code> al rol.</li>
-          <li>auditor: el <code>CALL</code> ahora falla.</li>
-          <li>root: <code>GRANT</code> de vuelta.</li>
-          <li>auditor: funciona otra vez.</li>
+          <li>Ctrl+9 → root: <code>REVOKE EXECUTE</code> al rol.</li>
+          <li>Ctrl+9 → <code>usr_auditor</code>: el <code>CALL</code> ahora falla.</li>
+          <li>Ctrl+9 → root: <code>GRANT</code> de vuelta.</li>
+          <li>Ctrl+9 → <code>usr_auditor</code>: funciona otra vez.</li>
         </ol>
         <h3 class="demo__subtitulo">Resultado esperado</h3>
         <ul class="esperados">
@@ -1544,13 +1556,16 @@ ORDER BY user;</pre><button class="copiar" type="button">Copiar</button></div>
           <button class="copiar copiar--todo" type="button">Copiar todo</button>
         </div>
         <div class="codigo__cuerpo">
-          <p class="nota ">root</p>
+          <p class="nota nota--sesion">CAMBIAR DE CONEXIÓN (Ctrl+9) → root</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">REVOKE EXECUTE ON PROCEDURE optica_db.sp_buscar_paciente FROM 'rol_auditor';</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota nota--error">usr_auditor · ERROR ESPERADO 1370 (si no cambia, reconectar)</p>
+          <p class="nota nota--sesion">CAMBIAR DE CONEXIÓN (Ctrl+9) → usr_auditor</p>
+          <p class="nota nota--error">ERROR ESPERADO 1370 (si no cambia, reconectar)</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_buscar_paciente(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Juan');</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota ">root · se restituye</p>
+          <p class="nota nota--sesion">CAMBIAR DE CONEXIÓN (Ctrl+9) → root</p>
+          <p class="nota ">Se restituye el permiso</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">GRANT EXECUTE ON PROCEDURE optica_db.sp_buscar_paciente TO 'rol_auditor';</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota ">usr_auditor · OK de nuevo</p>
+          <p class="nota nota--sesion">CAMBIAR DE CONEXIÓN (Ctrl+9) → usr_auditor</p>
+          <p class="nota nota--ok">OK de nuevo</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">CALL sp_buscar_paciente(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Juan');</pre><button class="copiar" type="button">Copiar</button></div>
         </div>
       </div>
@@ -1595,9 +1610,10 @@ ORDER BY user;</pre><button class="copiar" type="button">Copiar</button></div>
   IDENTIFIED BY 'Demo#Bloqueo_2026'
   FAILED_LOGIN_ATTEMPTS 3 PASSWORD_LOCK_TIME 1;</pre><button class="copiar" type="button">Copiar</button></div>
           <p class="nota nota--terminal">TERMINAL · tres intentos con contraseña incorrecta (ERROR 1045)</p>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec -it mysql-optica mysql -u usr_demo_bloqueo -pIncorrecta</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">$env:Path += ";C:\Program Files\MySQL\MySQL Server 8.0\bin"</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">mysql -u usr_demo_bloqueo -pIncorrecta</pre><button class="copiar" type="button">Copiar</button></div>
           <p class="nota nota--error">TERMINAL · cuarto intento, contraseña CORRECTA: ERROR ESPERADO 3955 &quot;Account is blocked for 1 day(s) ... due to 3 consecutive failed logins&quot;</p>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec -it mysql-optica mysql -u usr_demo_bloqueo -p</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">mysql -u usr_demo_bloqueo -p</pre><button class="copiar" type="button">Copiar</button></div>
           <p class="nota ">root · desbloqueo administrativo y retiro de la cuenta</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">ALTER USER 'usr_demo_bloqueo'@'localhost' ACCOUNT UNLOCK;</pre><button class="copiar" type="button">Copiar</button></div>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DROP USER 'usr_demo_bloqueo'@'localhost';</pre><button class="copiar" type="button">Copiar</button></div>
@@ -1687,15 +1703,20 @@ WHERE ROUTINE_SCHEMA = 'optica_db' AND ROUTINE_TYPE = 'PROCEDURE';</pre><button 
 
       <aside class="demo__guia anim" style="--d:1">
         <p class="demo__objetivo">Volcado consistente sin bloquear a los demás (<code>--single-transaction</code>), con rutinas incluidas.</p>
+        <h3 class="demo__subtitulo">Credenciales</h3>
+        <div class="creds"><div class="cred"><p class="cred__conexion">Cuenta para la terminal <b>usr_respaldo</b></p><div class="cred__campo"><span class="cred__etiqueta">Usuario</span><code>usr_respaldo</code><button class="copiar cred__copiar" type="button" data-copiar="usr_respaldo" data-aviso="Usuario copiado · pégalo en la terminal">Copiar</button></div><div class="cred__campo"><span class="cred__etiqueta">Contraseña</span><code>Cambiar#Backup_2026</code><button class="copiar cred__copiar" type="button" data-copiar="Cambiar#Backup_2026" data-aviso="Contraseña copiada · pégalo en la terminal">Copiar</button></div></div></div>
         <h3 class="demo__subtitulo">Pasos</h3>
         <ol class="pasos">
+          <li>Crear la carpeta <code>respaldos_optica</code> y entrar en ella.</li>
+          <li>Agregar <code>mysql</code> y <code>mysqldump</code> al PATH y comprobar con <code>--version</code>.</li>
           <li><code>mysqldump</code> con la cuenta <code>usr_respaldo</code>.</li>
-          <li>Comprobar el contenido con <code>grep</code>.</li>
-          <li>Sacar el archivo del servidor con <code>docker cp</code>.</li>
+          <li>Comprobar el contenido con <code>Select-String</code> y la última línea.</li>
+          <li>Copiar el archivo fuera del equipo y comparar tamaños.</li>
         </ol>
         <h3 class="demo__subtitulo">Resultado esperado</h3>
         <ul class="esperados">
           <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>9 <code>CREATE TABLE</code> · 5 <code>PROCEDURE</code></span></li>
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Última línea: <code>-- Dump completed on …</code></span></li>
           <li class="esperado esperado--aviso"><span class="esperado__icono">!</span><span>No usar <code>&gt;</code> en PowerShell 5.1: escribe UTF-16.</span></li>
         </ul>
       </aside>
@@ -1707,15 +1728,31 @@ WHERE ROUTINE_SCHEMA = 'optica_db' AND ROUTINE_TYPE = 'PROCEDURE';</pre><button 
           <button class="copiar copiar--todo" type="button">Copiar todo</button>
         </div>
         <div class="codigo__cuerpo">
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec -it mysql-optica mysqldump -u usr_respaldo -p `
+          <p class="nota ">Usar la misma ventana para 3.2 y 3.3: la carpeta y el PATH sólo duran mientras siga abierta.</p>
+          <p class="nota ">Carpeta de trabajo, fuera del repositorio</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">New-Item -ItemType Directory -Force "$HOME\Documents\respaldos_optica"</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">cd "$HOME\Documents\respaldos_optica"</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Herramientas de MySQL en el PATH de la sesión</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">$env:Path += ";C:\Program Files\MySQL\MySQL Server 8.0\bin"</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Comprobación. Esperado: mysqldump Ver 8.0.xx for Win64</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">mysqldump --version</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Respaldo. Pide la contraseña de usr_respaldo (no se ve al escribir)</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">mysqldump -u usr_respaldo -p `
   --single-transaction --routines --triggers --events `
   --hex-blob --default-character-set=utf8mb4 `
-  --databases optica_db --result-file=/tmp/optica_db_respaldo.sql</pre><button class="copiar" type="button">Copiar</button></div>
+  --databases optica_db --result-file=optica_db_respaldo.sql</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Sin ningún mensaje = correcto. &quot;Access denied for user&quot;: contraseña o cuenta incorrecta. &quot;PROCESS privilege&quot;: al rol le falta GRANT PROCESS.</p>
           <p class="nota nota--esperado">Comprobación del contenido. Esperado: 9 y 5</p>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec mysql-optica grep -c "CREATE TABLE" /tmp/optica_db_respaldo.sql</pre><button class="copiar" type="button">Copiar</button></div>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec mysql-optica grep -c "CREATE.*PROCEDURE" /tmp/optica_db_respaldo.sql</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota ">Copia fuera del servidor (un respaldo dentro del servidor no protege contra la pérdida del servidor)</p>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker cp mysql-optica:/tmp/optica_db_respaldo.sql .</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">(Select-String -Path optica_db_respaldo.sql -Pattern "CREATE TABLE").Count</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">(Select-String -Path optica_db_respaldo.sql -Pattern "CREATE.*PROCEDURE").Count</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Archivo completo. Esperado: -- Dump completed on &lt;fecha y hora&gt; (mysqldump sólo escribe esa línea si terminó sin interrupciones)</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">Get-Content optica_db_respaldo.sql -Tail 1</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Copia fuera del equipo (un respaldo en el mismo disco no protege contra la pérdida del equipo): USB, otro disco o la nube. Letra de la USB: la unidad que no es C:</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">Get-PSDrive -PSProvider FileSystem</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">New-Item -ItemType Directory -Force E:\respaldos</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">Copy-Item optica_db_respaldo.sql E:\respaldos\</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--esperado">Comprobación de la copia. Esperado: el mismo Length en ambos renglones</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">Get-Item optica_db_respaldo.sql, E:\respaldos\optica_db_respaldo.sql | Select-Object FullName, Length</pre><button class="copiar" type="button">Copiar</button></div>
         </div>
       </div>
     </div>
@@ -1736,11 +1773,12 @@ WHERE ROUTINE_SCHEMA = 'optica_db' AND ROUTINE_TYPE = 'PROCEDURE';</pre><button 
         <h3 class="demo__subtitulo">Pasos</h3>
         <ol class="pasos">
           <li><code>DROP DATABASE</code> y comprobar que ya no existe.</li>
-          <li>Restaurar con una cuenta administrativa.</li>
+          <li>Restaurar con <code>root</code> desde la carpeta del respaldo (misma terminal de 3.2).</li>
           <li><kbd>F5</kbd> en DBeaver para refrescar.</li>
         </ol>
         <h3 class="demo__subtitulo">Resultado esperado</h3>
         <ul class="esperados">
+          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span><code>SHOW DATABASES</code> vacío tras el <code>DROP</code>.</span></li>
           <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>La base reaparece completa.</span></li>
           <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Usuarios, roles y permisos intactos: viven en el esquema <code>mysql</code>.</span></li>
         </ul>
@@ -1755,13 +1793,14 @@ WHERE ROUTINE_SCHEMA = 'optica_db' AND ROUTINE_TYPE = 'PROCEDURE';</pre><button 
         <div class="codigo__cuerpo">
           <p class="nota ">root · se simula la pérdida total de la base</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DROP DATABASE optica_db;</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota ">Comprobación: ya no existe</p>
+          <p class="nota nota--esperado">Comprobación: ya no existe. Esperado: resultado vacío (si DBeaver aún la muestra a la izquierda: F5 sobre la conexión)</p>
           <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SHOW DATABASES LIKE 'optica_db';</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota nota--terminal">TERMINAL · restauración con una cuenta administrativa (usr_respaldo es de sólo lectura: no puede crear objetos)</p>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker exec -it mysql-optica sh -c "mysql -uroot -p &lt; /tmp/optica_db_respaldo.sql"</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota ">Cuentas, roles y GRANT no viajan en el volcado: viven en el esquema</p>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">mysql, que no se borró. Por eso los permisos siguen vigentes.</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota ">En DBeaver: F5 sobre la conexión para refrescar el navegador.</p>
+          <p class="nota nota--terminal">TERMINAL · restauración con una cuenta administrativa (usr_respaldo es de sólo lectura: no puede crear objetos) (PowerShell no admite &quot;&lt;&quot;: se usa source desde el cliente mysql) En la misma ventana de 3.2. Si se abrió otra, repetir antes:</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">cd "$HOME\Documents\respaldos_optica"</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">$env:Path += ";C:\Program Files\MySQL\MySQL Server 8.0\bin"</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Pide la contraseña de root. Sin ningún mensaje = correcto</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">mysql -u root -p -e "source optica_db_respaldo.sql"</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota ">Cuentas, roles y GRANT no viajan en el volcado: viven en el esquema mysql, que no se borró. Por eso los permisos siguen vigentes. En DBeaver: F5 sobre la conexión para refrescar el navegador.</p>
         </div>
       </div>
     </div>
@@ -1842,10 +1881,12 @@ ORDER BY ROUTINE_NAME;</pre><button class="copiar" type="button">Copiar</button>
         <ol class="pasos">
           <li>Mostrar qué archivos <code>.ibd</code> forman la base.</li>
           <li>Explicar los comandos de la copia en frío.</li>
+          <li>Guardar el <code>.zip</code> con ruta absoluta en <code>respaldos_optica</code>.</li>
         </ol>
         <h3 class="demo__subtitulo">Resultado esperado</h3>
         <ul class="esperados">
           <li class="esperado esperado--aviso"><span class="esperado__icono">!</span><span>Sólo se explica: detener el servidor en vivo es arriesgado.</span></li>
+          <li class="esperado esperado--aviso"><span class="esperado__icono">!</span><span>Como administrador, PowerShell abre en <code>C:\Windows\System32</code>: sin ruta absoluta el <code>.zip</code> queda ahí.</span></li>
         </ul>
       </aside>
 
@@ -1863,72 +1904,12 @@ FROM information_schema.INNODB_TABLESPACES s
 LEFT JOIN information_schema.INNODB_DATAFILES d ON d.SPACE = s.SPACE
 WHERE s.NAME LIKE 'optica_db/%'
 ORDER BY s.NAME;</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota nota--terminal">TERMINAL · copia en frío (detiene el servicio)</p>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker compose stop mysql</pre><button class="copiar" type="button">Copiar</button></div>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker run --rm -v act5_mysql_optica_data:/var/lib/mysql:ro -v "${PWD}:/respaldo" `
-  alpine tar czf /respaldo/optica_db_fisico.tar.gz -C /var/lib/mysql .</pre><button class="copiar" type="button">Copiar</button></div>
-          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">docker compose start mysql</pre><button class="copiar" type="button">Copiar</button></div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section class="slide slide--demo" data-titulo="C.1 · Limpieza">
-    <div class="demo">
-      <header class="demo__cab anim" style="--d:0">
-        <span class="demo__num">C.1</span>
-        <div class="demo__encabezado">
-          <p class="sobretitulo">Cierre · Limpieza</p>
-          <h2 class="demo__titulo">Limpieza</h2>
-        </div>
-        <p class="demo__conexion"><span>Conexión</span><code>root</code></p>
-      </header>
-
-      <aside class="demo__guia anim" style="--d:1">
-        <p class="demo__objetivo">Dejar los datos de muestra como estaban (alternativa: repetir la preparación).</p>
-        <h3 class="demo__subtitulo">Pasos</h3>
-        <ol class="pasos">
-          <li>Ejecutar el bloque completo con <kbd>Alt</kbd>+<kbd>X</kbd>.</li>
-        </ol>
-        <h3 class="demo__subtitulo">Resultado esperado</h3>
-        <ul class="esperados">
-          <li class="esperado esperado--ok"><span class="esperado__icono">✔</span><span>Vuelve a 6 · 6 · 9 · 8 · 1</span></li>
-        </ul>
-      </aside>
-
-      <div class="codigo anim" style="--d:2">
-        <div class="codigo__barra">
-          <span class="codigo__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span class="codigo__archivo">demo_expo.sql · [C.1]</span>
-          <button class="copiar copiar--todo" type="button">Copiar todo</button>
-        </div>
-        <div class="codigo__cuerpo">
-          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">USE optica_db;</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota ">Asientos de los pacientes de prueba (sus recetas caen por CASCADE)</p>
-          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE a FROM asiento_clinico a
-  JOIN expediente e ON e.id = a.expediente_id
-  JOIN paciente   p ON p.id = e.paciente_id
- WHERE p.nombre IN ('Rosa Medina Alcaraz', 'Verificacion Restauracion');</pre><button class="copiar" type="button">Copiar</button></div>
-          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE e FROM expediente e
-  JOIN paciente p ON p.id = e.paciente_id
- WHERE p.nombre IN ('Rosa Medina Alcaraz', 'Verificacion Restauracion');</pre><button class="copiar" type="button">Copiar</button></div>
-          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE FROM paciente
- WHERE nombre IN ('Rosa Medina Alcaraz', 'Verificacion Restauracion');</pre><button class="copiar" type="button">Copiar</button></div>
-          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DELETE FROM sucursal WHERE nombre IN ('Sucursal Poniente', 'Prueba Auditor');</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota ">Contacto de Juan Pérez como antes de [1.1]</p>
-          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">UPDATE paciente
-   SET telefono  = '3511234567',
-       correo    = 'juan.perez@correo.com',
-       direccion = 'Calle Morelos 15, Zamora'
- WHERE id = UNHEX(MD5('pac-01'));</pre><button class="copiar" type="button">Copiar</button></div>
-          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">DROP USER IF EXISTS 'usr_demo_bloqueo'@'localhost';</pre><button class="copiar" type="button">Copiar</button></div>
-          <p class="nota nota--esperado">Esperado: 6 pacientes, 6 expedientes, 9 asientos, 8 recetas, 1 sin receta</p>
-          <div class="bloque bloque--sql" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><pre class="sql">SELECT (SELECT COUNT(*) FROM paciente)        AS pacientes,
-       (SELECT COUNT(*) FROM expediente)      AS expedientes,
-       (SELECT COUNT(*) FROM asiento_clinico) AS asientos,
-       (SELECT COUNT(*) FROM receta)          AS recetas,
-       (SELECT COUNT(*) FROM asiento_clinico a
-          LEFT JOIN receta r ON r.asiento_id = a.id
-         WHERE r.id IS NULL)                  AS asientos_sin_receta;</pre><button class="copiar" type="button">Copiar</button></div>
+          <p class="nota nota--terminal">TERMINAL (como administrador) · copia en frío (detiene el servicio)</p>
+          <p class="nota ">Ruta absoluta en el destino: PowerShell como administrador abre en C:\Windows\System32 y ahí quedaría el .zip</p>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">Stop-Service MySQL80</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">Compress-Archive -Path "C:\ProgramData\MySQL\MySQL Server 8.0\Data\*" `
+  -DestinationPath "$HOME\Documents\respaldos_optica\optica_db_fisico.zip"</pre><button class="copiar" type="button">Copiar</button></div>
+          <div class="bloque bloque--cmd" tabindex="0" title="Clic para resaltar · botón Copiar para copiar"><span class="bloque__ps">PS&gt;</span><pre class="cmd">Start-Service MySQL80</pre><button class="copiar" type="button">Copiar</button></div>
         </div>
       </div>
     </div>

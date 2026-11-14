@@ -21,13 +21,12 @@
 --        usr_recepcion1     Cambiar#Recep_2026
 --        usr_optometrista1  Cambiar#Opto_2026
 --        usr_auditor        Cambiar#Audit_2026
---      OJO con Docker: las cuentas usr_* están definidas en 'localhost';
---      si DBeaver entra por el puerto publicado del contenedor responde
---      1045, y esas demos se hacen desde la terminal:
---        docker exec -it mysql-optica mysql -u usr_recepcion1 -p optica_db
---    · Bloques "TERMINAL": comandos de PowerShell, no SQL. Se asume el
---      contenedor Docker mysql-optica de la Actividad 5. Sin Docker,
---      quitar el prefijo "docker exec -it mysql-optica".
+--      Las cuentas usr_* están definidas en 'localhost': DBeaver debe
+--      conectarse a localhost:3306 (MySQL local, servicio MySQL80).
+--    · Bloques "TERMINAL": comandos de PowerShell, no SQL. mysql.exe y
+--      mysqldump.exe no están en el PATH; al abrir la terminal ejecutar
+--      una vez (sólo dura esa sesión):
+--        $env:Path += ";C:\Program Files\MySQL\MySQL Server 8.0\bin"
 -- =====================================================================
 
 
@@ -934,6 +933,11 @@ ORDER BY user;
 -- =====================================================================
 --  [2.2] RECEPCIÓN: LO PERMITIDO Y LO NEGADO   (conexión: usr_recepcion1)
 -- =====================================================================
+-- ---- CAMBIAR DE CONEXIÓN: root → usr_recepcion1
+-- En DBeaver: Ctrl+9 (conexión activa del editor) y elegir usr_recepcion1.
+-- MySQL no tiene un «cambiar de usuario» en SQL; como root todo funciona
+-- y no aparecería ninguno de los errores de la demo.
+-- Esperado: usr_recepcion1@localhost · `rol_recepcion`@`%`
 SELECT CURRENT_USER(), CURRENT_ROLE();
 
 -- OK: tiene EXECUTE sobre el procedimiento
@@ -955,7 +959,10 @@ DELETE FROM paciente WHERE nombre = 'Juan Pérez López';
 -- =====================================================================
 --  [2.3] OPTOMETRISTA Y AUDITOR   (conexiones: usr_optometrista1, usr_auditor)
 -- =====================================================================
--- ---- como usr_optometrista1
+-- ---- CAMBIAR DE CONEXIÓN (Ctrl+9) → usr_optometrista1
+-- Esperado: usr_optometrista1@localhost · `rol_optometrista`@`%`
+SELECT CURRENT_USER(), CURRENT_ROLE();
+
 -- OK: lee y crea recetas
 SELECT COUNT(*) AS recetas FROM receta;
 
@@ -966,7 +973,10 @@ DELETE FROM receta WHERE asiento_id = UNHEX(MD5('asi-01'));
 -- ERROR ESPERADO 1142: los datos de contacto son de recepción
 UPDATE paciente SET telefono = '0000000000' WHERE id = UNHEX(MD5('pac-01'));
 
--- ---- como usr_auditor
+-- ---- CAMBIAR DE CONEXIÓN (Ctrl+9) → usr_auditor
+-- Esperado: usr_auditor@localhost · `rol_auditor`@`%`
+SELECT CURRENT_USER(), CURRENT_ROLE();
+
 -- OK: sólo lectura sobre todo el esquema
 SELECT COUNT(*) AS asientos FROM asiento_clinico;
 
@@ -978,16 +988,19 @@ CALL sp_alta_sucursal(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Prueba Auditor', 'X', 
 --  [2.4] GRANT / REVOKE EN VIVO   (root  ↔  usr_auditor)
 --  Al cambiar el ROL cambian todos sus usuarios a la vez.
 -- =====================================================================
--- root
+-- ---- CAMBIAR DE CONEXIÓN (Ctrl+9) → root
 REVOKE EXECUTE ON PROCEDURE optica_db.sp_buscar_paciente FROM 'rol_auditor';
 
--- usr_auditor · ERROR ESPERADO 1370 (si no cambia, reconectar)
+-- ---- CAMBIAR DE CONEXIÓN (Ctrl+9) → usr_auditor
+-- ERROR ESPERADO 1370 (si no cambia, reconectar)
 CALL sp_buscar_paciente(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Juan');
 
--- root · se restituye
+-- ---- CAMBIAR DE CONEXIÓN (Ctrl+9) → root
+-- Se restituye el permiso
 GRANT EXECUTE ON PROCEDURE optica_db.sp_buscar_paciente TO 'rol_auditor';
 
--- usr_auditor · OK de nuevo
+-- ---- CAMBIAR DE CONEXIÓN (Ctrl+9) → usr_auditor
+-- OK de nuevo
 CALL sp_buscar_paciente(BIN_TO_UUID(UNHEX(MD5('opt-01'))), 'Juan');
 
 
@@ -1001,10 +1014,11 @@ CREATE USER IF NOT EXISTS 'usr_demo_bloqueo'@'localhost'
   FAILED_LOGIN_ATTEMPTS 3 PASSWORD_LOCK_TIME 1;
 
 -- TERMINAL · tres intentos con contraseña incorrecta (ERROR 1045)
---   docker exec -it mysql-optica mysql -u usr_demo_bloqueo -pIncorrecta
+--   $env:Path += ";C:\Program Files\MySQL\MySQL Server 8.0\bin"
+--   mysql -u usr_demo_bloqueo -pIncorrecta
 -- TERMINAL · cuarto intento, contraseña CORRECTA: ERROR ESPERADO 3955
 --   "Account is blocked for 1 day(s) ... due to 3 consecutive failed logins"
---   docker exec -it mysql-optica mysql -u usr_demo_bloqueo -p
+--   mysql -u usr_demo_bloqueo -p
 
 -- root · desbloqueo administrativo y retiro de la cuenta
 ALTER USER 'usr_demo_bloqueo'@'localhost' ACCOUNT UNLOCK;
@@ -1044,19 +1058,45 @@ SHOW GRANTS FOR 'usr_respaldo'@'localhost' USING 'rol_respaldo';
 --  --result-file en lugar de ">": la redirección de PowerShell 5.1
 --  escribe UTF-16 y el archivo ya no se puede restaurar.
 -- =====================================================================
---   docker exec -it mysql-optica mysqldump -u usr_respaldo -p `
+--   Usar la misma ventana para 3.2 y 3.3: la carpeta y el PATH sólo
+--   duran mientras siga abierta.
+--
+--   Carpeta de trabajo, fuera del repositorio
+--   New-Item -ItemType Directory -Force "$HOME\Documents\respaldos_optica"
+--   cd "$HOME\Documents\respaldos_optica"
+--
+--   Herramientas de MySQL en el PATH de la sesión
+--   $env:Path += ";C:\Program Files\MySQL\MySQL Server 8.0\bin"
+--
+--   Comprobación. Esperado: mysqldump Ver 8.0.xx for Win64
+--   mysqldump --version
+--
+--   Respaldo. Pide la contraseña de usr_respaldo (no se ve al escribir)
+--   mysqldump -u usr_respaldo -p `
 --     --single-transaction --routines --triggers --events `
 --     --hex-blob --default-character-set=utf8mb4 `
---     --databases optica_db --result-file=/tmp/optica_db_respaldo.sql
+--     --databases optica_db --result-file=optica_db_respaldo.sql
+--
+--   Sin ningún mensaje = correcto. "Access denied for user": contraseña
+--   o cuenta incorrecta. "PROCESS privilege": al rol le falta GRANT PROCESS.
 --
 --   Comprobación del contenido. Esperado: 9 y 5
---   docker exec mysql-optica grep -c "CREATE TABLE" /tmp/optica_db_respaldo.sql
---   docker exec mysql-optica grep -c "CREATE.*PROCEDURE" /tmp/optica_db_respaldo.sql
+--   (Select-String -Path optica_db_respaldo.sql -Pattern "CREATE TABLE").Count
+--   (Select-String -Path optica_db_respaldo.sql -Pattern "CREATE.*PROCEDURE").Count
 --
---   Copia fuera del servidor (un respaldo dentro del servidor no protege
---   contra la pérdida del servidor)
---   docker cp mysql-optica:/tmp/optica_db_respaldo.sql .
-
+--   Archivo completo. Esperado: -- Dump completed on <fecha y hora>
+--   (mysqldump sólo escribe esa línea si terminó sin interrupciones)
+--   Get-Content optica_db_respaldo.sql -Tail 1
+--
+--   Copia fuera del equipo (un respaldo en el mismo disco no protege
+--   contra la pérdida del equipo): USB, otro disco o la nube.
+--   Letra de la USB: la unidad que no es C:
+--   Get-PSDrive -PSProvider FileSystem
+--   New-Item -ItemType Directory -Force E:\respaldos
+--   Copy-Item optica_db_respaldo.sql E:\respaldos\
+--
+--   Comprobación de la copia. Esperado: el mismo Length en ambos renglones
+--   Get-Item optica_db_respaldo.sql, E:\respaldos\optica_db_respaldo.sql | Select-Object FullName, Length
 
 -- =====================================================================
 --  [3.3] DESASTRE Y RESTAURACIÓN
@@ -1064,12 +1104,19 @@ SHOW GRANTS FOR 'usr_respaldo'@'localhost' USING 'rol_respaldo';
 -- root · se simula la pérdida total de la base
 DROP DATABASE optica_db;
 
--- Comprobación: ya no existe
+-- Comprobación: ya no existe. Esperado: resultado vacío
+-- (si DBeaver aún la muestra a la izquierda: F5 sobre la conexión)
 SHOW DATABASES LIKE 'optica_db';
 
 -- TERMINAL · restauración con una cuenta administrativa
 --   (usr_respaldo es de sólo lectura: no puede crear objetos)
---   docker exec -it mysql-optica sh -c "mysql -uroot -p < /tmp/optica_db_respaldo.sql"
+--   (PowerShell no admite "<": se usa source desde el cliente mysql)
+--   En la misma ventana de 3.2. Si se abrió otra, repetir antes:
+--   cd "$HOME\Documents\respaldos_optica"
+--   $env:Path += ";C:\Program Files\MySQL\MySQL Server 8.0\bin"
+--
+--   Pide la contraseña de root. Sin ningún mensaje = correcto
+--   mysql -u root -p -e "source optica_db_respaldo.sql"
 --
 --   Cuentas, roles y GRANT no viajan en el volcado: viven en el esquema
 --   mysql, que no se borró. Por eso los permisos siguen vigentes.
@@ -1119,11 +1166,14 @@ LEFT JOIN information_schema.INNODB_DATAFILES d ON d.SPACE = s.SPACE
 WHERE s.NAME LIKE 'optica_db/%'
 ORDER BY s.NAME;
 
--- TERMINAL · copia en frío (detiene el servicio)
---   docker compose stop mysql
---   docker run --rm -v act5_mysql_optica_data:/var/lib/mysql:ro -v "${PWD}:/respaldo" `
---     alpine tar czf /respaldo/optica_db_fisico.tar.gz -C /var/lib/mysql .
---   docker compose start mysql
+-- TERMINAL (como administrador) · copia en frío (detiene el servicio)
+--
+--   Ruta absoluta en el destino: PowerShell como administrador abre en
+--   C:\Windows\System32 y ahí quedaría el .zip
+--   Stop-Service MySQL80
+--   Compress-Archive -Path "C:\ProgramData\MySQL\MySQL Server 8.0\Data\*" `
+--     -DestinationPath "$HOME\Documents\respaldos_optica\optica_db_fisico.zip"
+--   Start-Service MySQL80
 
 
 -- #####################################################################

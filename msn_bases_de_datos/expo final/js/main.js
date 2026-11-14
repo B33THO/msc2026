@@ -197,6 +197,14 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('click', (e) => {
+  const cred = e.target.closest('.cred__copiar');
+  if (cred) {
+    copiarTexto(cred.dataset.copiar, cred.dataset.aviso);
+    cred.classList.add('copiado');
+    setTimeout(() => cred.classList.remove('copiado'), 1400);
+    cred.blur();
+    return;
+  }
   const todo = e.target.closest('.copiar--todo');
   if (todo) {
     const cuerpo = todo.closest('.codigo').querySelector('.codigo__cuerpo');
